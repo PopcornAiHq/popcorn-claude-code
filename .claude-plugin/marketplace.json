@@ -1,0 +1,21 @@
+{
+  "name": "popcorn",
+  "owner": {
+    "name": "Popcorn",
+    "email": "support@popcorn.ai"
+  },
+  "metadata": {
+    "description": "Popcorn messaging integration for Claude Code",
+    "version": "0.3.0"
+  },
+  "plugins": [
+    {
+      "name": "popcorn",
+      "source": "./",
+      "description": "Popcorn messaging — read channels, send updates, and publish projects",
+      "author": { "name": "Popcorn" },
+      "keywords": ["messaging", "popcorn", "communication"],
+      "category": "productivity"
+    }
+  ]
+}

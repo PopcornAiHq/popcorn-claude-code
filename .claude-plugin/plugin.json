@@ -1,0 +1,12 @@
+{
+  "name": "popcorn",
+  "description": "Popcorn messaging integration for Claude Code",
+  "version": "0.3.0",
+  "author": {
+    "name": "Popcorn",
+    "email": "support@popcorn.ai"
+  },
+  "repository": "https://github.com/PopcornAiHq/popcorn-claude-code",
+  "license": "MIT",
+  "keywords": ["messaging", "popcorn", "communication"]
+}
