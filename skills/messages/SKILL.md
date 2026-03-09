@@ -1,5 +1,5 @@
 ---
-name: popcorn:messages
+name: messages
 description: Pull recent channel conversation into context for iteration
 allowed-tools: Bash
 ---
