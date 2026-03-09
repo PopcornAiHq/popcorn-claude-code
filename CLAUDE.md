@@ -9,8 +9,10 @@ popcorn-claude-code/
 ├── skills/
 │   ├── popcorn/
 │   │   └── SKILL.md       ← Always-on: setup detection + CLI reference + MCP fallback
-│   └── pop/
-│       └── SKILL.md       ← Slash command: publish project (coming soon)
+│   ├── pop/
+│   │   └── SKILL.md       ← /popcorn:pop — publish project to Popcorn channel
+│   └── messages/
+│       └── SKILL.md       ← /popcorn:messages — pull channel context for iteration
 ├── .claude-plugin/
 │   ├── plugin.json         ← Plugin manifest
 │   └── marketplace.json    ← Marketplace listing
@@ -22,18 +24,23 @@ popcorn-claude-code/
 ## Skills
 
 **popcorn** (alwaysApply: true):
-- Detects whether CLI or MCP is available
-- Guides users through setup if neither is found (recommends CLI, falls back to MCP)
+- Installs CLI and MCP on first use
 - Full CLI command reference and recipes
 - Behavioral constraints (quote channels, never use inbox for file search, etc.)
 
-**pop** (slash command):
-- Placeholder — not yet implemented
+**popcorn:pop** (slash command):
+- Publishes local project files to a Popcorn app channel via VM
+- Creates `popcorn.json` to track channel link
+- Runs as a subagent
+
+**popcorn:messages** (slash command):
+- Pulls recent channel conversation into context
+- Lets developer iterate based on team feedback, then `/popcorn:pop` again
 
 ## Dependencies
 
 This plugin has no code dependencies. It provides skills that guide the agent to use either:
-- **popcorn-cli** (`pip install popcorn-cli`) — full-featured CLI
+- **popcorn-cli** (`uv tool install git+https://github.com/PopcornAiHq/popcorn-cli.git`) — full-featured CLI
 - **Popcorn MCP server** (`https://mcp.popcorn.ai/mcp`) — lighter alternative
 
 ## Releasing

@@ -1,12 +1,12 @@
 ---
-name: pop-messages
+name: popcorn:messages
 description: Pull recent channel conversation into context for iteration
 allowed-tools: Bash
 ---
 
-# /pop-messages — Pull Channel Context
+# /popcorn:messages — Pull Channel Context
 
-Loads recent messages from the linked Popcorn app channel into the current session, so the developer can iterate based on team feedback and then `/pop` again.
+Loads recent messages from the linked Popcorn app channel into the current session, so the developer can iterate based on team feedback and then `/popcorn:pop` again.
 
 ## Flow
 
@@ -15,7 +15,7 @@ Loads recent messages from the linked Popcorn app channel into the current sessi
 Look for `popcorn.json` in the repo root.
 
 - **Found** → read the `conversation_id` and `channel` name.
-- **Not found** → tell the user: "No popcorn.json found. Run `/pop` first to publish this project."
+- **Not found** → tell the user: "No popcorn.json found. Run `/popcorn:pop` first to publish this project."
 
 ### Step 2: Fetch recent messages
 
@@ -38,4 +38,4 @@ Summarize the recent conversation concisely:
 - Any specific files or features mentioned
 - Action items or change requests
 
-The developer can now iterate on the code and run `/pop` to publish the next version.
+The developer can now iterate on the code and run `/popcorn:pop` to publish the next version.
