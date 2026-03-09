@@ -1,10 +1,10 @@
 ---
-name: pop
+name: popcorn:pop
 description: Publish your project to a Popcorn channel
 allowed-tools: Bash
 ---
 
-# /pop — Publish to Popcorn
+# /popcorn:pop — Publish to Popcorn
 
 When the user runs `/pop`, dispatch the entire flow to a subagent using the Agent tool with `subagent_type: "general-purpose"`. Pass the full prompt below as the agent's task.
 
