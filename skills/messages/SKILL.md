@@ -28,7 +28,7 @@ Use the Popcorn MCP server to fetch recent messages from the channel, including:
 - Media attachments (filenames, types)
 - Code metadata if present
 
-Prefer MCP over CLI here — MCP returns structured data that stays in context without parsing.
+Prefer MCP over CLI here (exception to the general "CLI first" rule) — MCP returns structured data that stays in context without parsing.
 
 If MCP is unavailable, fall back to:
 ```bash
