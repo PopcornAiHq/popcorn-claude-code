@@ -1,7 +1,7 @@
 ---
 name: pop
 description: Publish your project to a Popcorn channel
-allowed-tools: Bash
+allowed-tools: Bash, Agent
 ---
 
 # /popcorn:pop — Publish to Popcorn
