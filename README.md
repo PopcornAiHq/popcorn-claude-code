@@ -23,7 +23,7 @@ This plugin works with either transport:
 
 | | CLI | MCP |
 |---|---|---|
-| Install | `uv tool install git+https://github.com/PopcornAiHq/popcorn-cli.git` | `claude mcp add popcorn --transport http https://mcp.popcorn.ai/mcp` |
+| Install | Auto-installed on first use | Auto-configured on first use |
 | Features | Full (30+ commands) | Subset |
 | Context usage | Minimal (runs in shell) | Higher (MCP tool calls) |
 | Recommended | Yes | Fallback |

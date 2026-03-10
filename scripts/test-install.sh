@@ -8,7 +8,6 @@ set -euo pipefail
 #   ./scripts/test-install.sh            # test plugin install flow
 #   ./scripts/test-install.sh --no-cli   # also hides popcorn-cli to test detection/setup flow
 
-PLUGIN_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 NO_CLI=false
 TEST_PROJECT=""
 TEST_CONFIG=""

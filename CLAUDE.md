@@ -42,7 +42,7 @@ popcorn-claude-code/
 ## Dependencies
 
 This plugin has no code dependencies. It provides skills that guide the agent to use either:
-- **popcorn-cli** (`uv tool install git+https://github.com/PopcornAiHq/popcorn-cli.git`) — full-featured CLI
+- **popcorn-cli** (auto-installed on first use via uv/pipx/pip) — full-featured CLI
 - **Popcorn MCP server** (`https://mcp.popcorn.ai/mcp`) — lighter alternative
 
 ## Releasing
