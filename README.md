@@ -11,6 +11,8 @@ In Claude Code:
 /plugin install popcorn@popcorn
 ```
 
+> Tip: Enable auto-update for this marketplace in `/plugin` → Marketplaces to stay current.
+
 ## What's Included
 
 - **popcorn** skill — always-on reference for Popcorn messaging. Detects CLI/MCP availability and guides setup.
