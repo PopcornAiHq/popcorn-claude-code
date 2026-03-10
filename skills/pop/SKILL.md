@@ -12,7 +12,6 @@ Do NOT run the steps yourself — the subagent handles everything autonomously.
 
 ## Agent Prompt
 
-````
 You are publishing this project to a Popcorn app channel. Follow these steps in order. Stop and report back if any step fails.
 
 ### Principles
@@ -79,4 +78,3 @@ Zip all project files (respecting .gitignore if present) and send to Popcorn via
 Report to the developer: "Published to #pop-<name>."
 
 If first time, mention the new channel was created. If returning, include a brief summary of changes.
-````
