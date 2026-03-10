@@ -12,20 +12,12 @@ allowed-tools: Bash
 **You MUST run this exact command as your FIRST action before doing anything else with Popcorn. No exceptions. Do not skip this. Do not run your own checks instead.**
 
 ```bash
-CLI=false; AUTH=false; MCP=false
-command -v popcorn &>/dev/null && CLI=true
-[ "$CLI" = true ] && popcorn whoami &>/dev/null && AUTH=true
-claude mcp list 2>/dev/null | grep -q popcorn && MCP=true
-printf '{"cli":%s,"auth":%s,"mcp":%s}\n' "$CLI" "$AUTH" "$MCP"
+bash "${CLAUDE_PLUGIN_ROOT}/skills/popcorn/setup.sh"
 ```
 
-**Then fix ALL components that show `false`. You MUST check and fix every single one — do not stop after the first fix.**
+The script checks CLI, auth, and MCP — installing/configuring anything missing automatically. The last line of output is JSON: `{"cli":true/false,"auth":true/false,"mcp":true/false}`.
 
-1. **cli is false** → run: `uv tool install git+https://github.com/PopcornAiHq/popcorn-cli.git`
-2. **auth is false** → run: `popcorn auth login` (opens browser, tell user)
-3. **mcp is false** → run: `claude mcp add popcorn --transport http https://mcp.popcorn.ai/mcp` then tell the user to restart Claude Code
-
-Do not narrate detection steps. Only tell the user about actions that need their input (auth login, MCP restart).
+If any component is still `false` after the script runs, tell the user what failed and how to fix it manually. If MCP was just added, tell the user to restart Claude Code.
 
 ### Ready
 
