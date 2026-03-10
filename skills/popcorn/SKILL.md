@@ -12,20 +12,20 @@ allowed-tools: Bash
 **You MUST run this exact command as your FIRST action before doing anything else with Popcorn. No exceptions. Do not skip this. Do not run your own checks instead.**
 
 ```bash
-CLI=false; AUTH=false; MCP=false; CLI_PATH=""; AUTH_USER=""
-command -v popcorn &>/dev/null && CLI=true && CLI_PATH=$(command -v popcorn)
-[ "$CLI" = true ] && popcorn whoami &>/dev/null && AUTH=true && AUTH_USER=$(popcorn whoami 2>/dev/null | head -1 | sed 's/^User:[[:space:]]*//')
+CLI=false; AUTH=false; MCP=false
+command -v popcorn &>/dev/null && CLI=true
+[ "$CLI" = true ] && popcorn whoami &>/dev/null && AUTH=true
 claude mcp list 2>/dev/null | grep -q popcorn && MCP=true
-echo "{\"cli\":{\"installed\":$CLI,\"path\":\"$CLI_PATH\"},\"auth\":{\"ok\":$AUTH,\"user\":\"$AUTH_USER\"},\"mcp\":{\"installed\":$MCP}}"
+printf '{"cli":%s,"auth":%s,"mcp":%s}\n' "$CLI" "$AUTH" "$MCP"
 ```
 
-**Then fix ALL components that show `false`, in order. Do not stop after the first fix.**
+**Then fix ALL components that show `false`. You MUST check and fix every single one — do not stop after the first fix.**
 
-1. **`cli.installed` is false** → run: `uv tool install git+https://github.com/PopcornAiHq/popcorn-cli.git`
-2. **`auth.ok` is false** → run: `popcorn auth login` (opens browser)
-3. **`mcp.installed` is false** → run: `claude mcp add popcorn --transport http https://mcp.popcorn.ai/mcp` — tell the user they may need to restart Claude Code for MCP to take effect.
+1. **cli is false** → run: `uv tool install git+https://github.com/PopcornAiHq/popcorn-cli.git`
+2. **auth is false** → run: `popcorn auth login` (opens browser, tell user)
+3. **mcp is false** → run: `claude mcp add popcorn --transport http https://mcp.popcorn.ai/mcp` then tell the user to restart Claude Code
 
-Do not narrate the detection steps. Only tell the user about actions that require their input (auth login, MCP restart).
+Do not narrate detection steps. Only tell the user about actions that need their input (auth login, MCP restart).
 
 ### Ready
 
