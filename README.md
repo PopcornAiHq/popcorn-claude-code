@@ -14,7 +14,8 @@ In Claude Code:
 ## What's Included
 
 - **popcorn** skill — always-on reference for Popcorn messaging. Detects CLI/MCP availability and guides setup.
-- **pop** slash command — publish your project on Popcorn (coming soon).
+- `/popcorn:pop` — publish your project on Popcorn (coming soon)
+- `/popcorn:messages` — pull recent channel conversation into context
 
 ## CLI vs MCP
 

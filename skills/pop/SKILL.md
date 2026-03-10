@@ -6,7 +6,7 @@ allowed-tools: Bash, Agent
 
 # /popcorn:pop — Publish to Popcorn
 
-When the user runs `/pop`, dispatch the entire flow to a subagent using the Agent tool with `subagent_type: "general-purpose"`. Pass the full prompt below as the agent's task.
+When the user runs `/popcorn:pop`, dispatch the entire flow to a subagent using the Agent tool with `subagent_type: "general-purpose"`. Pass the full prompt below as the agent's task.
 
 Do NOT run the steps yourself — the subagent handles everything autonomously.
 
@@ -16,7 +16,7 @@ You are publishing this project to a Popcorn app channel. Follow these steps in 
 
 ### Principles
 
-- `/pop` should feel like one action. Handle setup invisibly on first run.
+- `/popcorn:pop` should feel like one action. Handle setup invisibly on first run.
 - Infer, don't interrupt. Minimize prompts.
 - GitHub is never involved. Files go to Popcorn's VM. No branches, no pushes.
 

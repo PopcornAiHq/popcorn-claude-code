@@ -30,12 +30,12 @@ popcorn-claude-code/
 - Full CLI command reference and recipes
 - Behavioral constraints (quote channels, never use inbox for file search, etc.)
 
-**popcorn:pop** (slash command):
+**/popcorn:pop** (slash command):
 - Publishes local project files to a Popcorn app channel via VM
 - Creates `popcorn.json` to track channel link
 - Runs as a subagent
 
-**popcorn:messages** (slash command):
+**/popcorn:messages** (slash command):
 - Pulls recent channel conversation into context
 - Lets developer iterate based on team feedback, then `/popcorn:pop` again
 

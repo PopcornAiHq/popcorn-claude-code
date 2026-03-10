@@ -22,18 +22,17 @@ done
 cleanup() {
   echo ""
   echo "=== Cleaning up ==="
-  [ -n "$TEST_PROJECT" ] && rm -rf "$TEST_PROJECT" && echo "Removed $TEST_PROJECT"
-  [ -n "$TEST_CONFIG" ] && rm -rf "$TEST_CONFIG" && echo "Removed $TEST_CONFIG"
+  rm -rf /tmp/popcorn-plugin-test
   echo "Done."
 }
 trap cleanup EXIT
 
-# Create isolated test project
-TEST_PROJECT=$(mktemp -d -t plugin-test-XXXX)
+# Use fixed paths so --keep dirs get cleaned up on next run
+TEST_PROJECT="/tmp/popcorn-plugin-test/project"
+TEST_CONFIG="/tmp/popcorn-plugin-test/config"
+rm -rf "$TEST_PROJECT" "$TEST_CONFIG"
+mkdir -p "$TEST_PROJECT" "$TEST_CONFIG"
 git -C "$TEST_PROJECT" init -q
-
-# Create isolated Claude config (clean slate — no existing plugins/settings)
-TEST_CONFIG=$(mktemp -d -t claude-config-XXXX)
 
 # Add a minimal CLAUDE.md so the session has context
 cat > "$TEST_PROJECT/CLAUDE.md" << 'PROJ_MD'
