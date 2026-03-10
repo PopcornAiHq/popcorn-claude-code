@@ -10,6 +10,10 @@ Loads recent messages from the linked Popcorn app channel into the current sessi
 
 ## Flow
 
+### Step 0: Verify setup
+
+Run the setup check from the **popcorn** skill (the always-on skill has the bash snippet and fix instructions). Fix anything that returns `false` before continuing.
+
 ### Step 1: Read popcorn.json
 
 Look for `popcorn.json` in the repo root.

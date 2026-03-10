@@ -16,6 +16,8 @@ popcorn-claude-code/
 ├── .claude-plugin/
 │   ├── plugin.json         ← Plugin manifest
 │   └── marketplace.json    ← Marketplace listing
+├── scripts/
+│   └── test-install.sh  ← Isolated env for testing plugin install flow
 ├── CLAUDE.md
 ├── README.md
 └── LICENSE

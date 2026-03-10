@@ -37,13 +37,7 @@ Stored in the repo root. Tracks the link between local project and Popcorn chann
 
 ### Step 1: Verify setup
 
-Run these checks silently. Only prompt if something needs user action.
-
-1. `which popcorn` — if missing, install: `uv tool install git+https://github.com/PopcornAiHq/popcorn-cli.git`
-2. `popcorn whoami` — if not authenticated, run `popcorn auth login`
-3. `claude mcp list` — if "popcorn" not found, run `claude mcp add popcorn --transport http https://mcp.popcorn.ai/mcp` and tell the user to restart Claude Code.
-
-After first run, this step is instant.
+Run the setup check from the **popcorn** skill (the always-on skill has the bash snippet and fix instructions). Fix anything that returns `false` before continuing.
 
 ### Step 2: Check for popcorn.json
 

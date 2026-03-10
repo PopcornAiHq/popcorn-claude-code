@@ -7,37 +7,27 @@ allowed-tools: Bash
 
 # Popcorn
 
-## Setup
+## Setup — MANDATORY
 
-Run these checks silently on first use (don't narrate detection steps to the user):
+**You MUST run this exact command as your FIRST action before doing anything else with Popcorn. No exceptions. Do not skip this. Do not run your own checks instead.**
 
-### Step 1: CLI
-
-Run `which popcorn` (or `command -v popcorn`).
-
-If not found → install:
 ```bash
-uv tool install git+https://github.com/PopcornAiHq/popcorn-cli.git
+CLI=false; AUTH=false; MCP=false; CLI_PATH=""; AUTH_USER=""
+command -v popcorn &>/dev/null && CLI=true && CLI_PATH=$(command -v popcorn)
+[ "$CLI" = true ] && popcorn whoami &>/dev/null && AUTH=true && AUTH_USER=$(popcorn whoami 2>/dev/null | head -1 | sed 's/^User:[[:space:]]*//')
+claude mcp list 2>/dev/null | grep -q popcorn && MCP=true
+echo "{\"cli\":{\"installed\":$CLI,\"path\":\"$CLI_PATH\"},\"auth\":{\"ok\":$AUTH,\"user\":\"$AUTH_USER\"},\"mcp\":{\"installed\":$MCP}}"
 ```
 
-### Step 2: Auth & Workspace
+**Then fix ALL components that show `false`, in order. Do not stop after the first fix.**
 
-Run `popcorn whoami`.
+1. **`cli.installed` is false** → run: `uv tool install git+https://github.com/PopcornAiHq/popcorn-cli.git`
+2. **`auth.ok` is false** → run: `popcorn auth login` (opens browser)
+3. **`mcp.installed` is false** → run: `claude mcp add popcorn --transport http https://mcp.popcorn.ai/mcp` — tell the user they may need to restart Claude Code for MCP to take effect.
 
-If not authenticated → run `popcorn auth login`. This opens a browser for the user to log in and select their workspace.
+Do not narrate the detection steps. Only tell the user about actions that require their input (auth login, MCP restart).
 
-### Step 3: MCP Server
-
-Run `claude mcp list` and look for "popcorn".
-
-If not found → add it:
-```bash
-claude mcp add popcorn --transport http https://mcp.popcorn.ai/mcp
-```
-
-Tell the user they may need to restart Claude Code for the MCP server to take effect.
-
-### Step 4: Ready
+### Ready
 
 Use **CLI mode** as the primary interface (cheaper, no context cost). Fall back to MCP tools when the CLI is unavailable.
 

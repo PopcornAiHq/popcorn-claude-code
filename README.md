@@ -29,6 +29,16 @@ This plugin works with either transport:
 
 The plugin will guide you through setup on first use.
 
+## Development
+
+### Testing the install flow
+
+```bash
+./scripts/test-install.sh
+```
+
+Launches Claude Code in an isolated environment (temp project + clean config dir) so you can test plugin installation without affecting your real setup. Follow the on-screen prompts to install and verify skills load correctly.
+
 ## License
 
 MIT
