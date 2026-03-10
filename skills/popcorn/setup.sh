@@ -21,13 +21,21 @@ if command -v popcorn &>/dev/null; then
   CLI=true
   echo -e "${DIM}CLI: found at $(command -v popcorn)${RESET}"
 else
+  REPO="git+https://github.com/PopcornAiHq/popcorn-cli.git"
   echo -e "${YELLOW}Installing popcorn-cli...${RESET}"
-  if uv tool install git+https://github.com/PopcornAiHq/popcorn-cli.git 2>&1; then
-    CLI=true
+  if command -v uv &>/dev/null; then
+    uv tool install "$REPO" 2>&1 && CLI=true
+  elif command -v pipx &>/dev/null; then
+    pipx install "$REPO" 2>&1 && CLI=true
+  elif command -v pip &>/dev/null; then
+    pip install "$REPO" 2>&1 && CLI=true
+  else
+    echo -e "No package installer found (tried uv, pipx, pip)."
+    echo -e "Install one of them, then run: uv tool install $REPO"
+  fi
+  if [ "$CLI" = true ]; then
     CHANGED=true
     echo -e "${GREEN}CLI: installed${RESET}"
-  else
-    echo -e "CLI: install failed — install manually: uv tool install git+https://github.com/PopcornAiHq/popcorn-cli.git"
   fi
 fi
 
