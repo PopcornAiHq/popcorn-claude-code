@@ -22,36 +22,36 @@ The last line is JSON: `{"cli":true,"auth":true,"mcp":true}`. If `cli` or `auth`
 
 From the user's message, extract:
 
-- **channel** — explicit site/channel name (optional). If not provided, defaults to `pop-<directory-name>`.
+- **name** — explicit site name (optional). If not provided, the CLI defaults to `pop-<directory-name>`.
 - **context** — description of what changed (optional). Examples: "Added dark mode", "Fixed mobile layout".
 
 **Parsing rules:**
-- Single token that looks like a slug (lowercase, hyphens, no spaces) → channel name
+- Single token that looks like a slug (lowercase, hyphens, no spaces) → site name
 - Multiple words that read as natural language → context
-- Use `-` separator to provide both: text before is channel, after is context
+- Use `-` separator to provide both: text before is name, after is context
 
 ```
 /popcorn:pop                                     → defaults
-/popcorn:pop my-app                              → --channel my-app
+/popcorn:pop my-app                              → --name my-app
 /popcorn:pop added dark mode                     → --context "Added dark mode"
-/popcorn:pop my-app - redesigned landing page    → --channel my-app --context "Redesigned landing page"
+/popcorn:pop my-app - redesigned landing page    → --name my-app --context "Redesigned landing page"
 ```
 
 ## Step 3: Deploy via CLI
 
-Run `pop.sh` with the extracted parameters:
-
 ```bash
-bash "${CLAUDE_PLUGIN_ROOT}/skills/pop/pop.sh" [--channel NAME] [--context "description"]
+popcorn --json pop [--name NAME] [--context "description"]
 ```
 
-The last line of output is JSON with the result:
+The CLI handles everything: tarball creation, S3 upload, VM deploy, `.popcorn.local.json` management, and `.gitignore` updates.
+
+Output is JSON:
 - Success: `{"conversation_id":"...","site_name":"...","version":3,"commit_hash":"..."}`
-- Error: `{"error":"...","detail":"..."}`
+- Error: CLI exits non-zero with error message
 
 ## Step 4: MCP fallback
 
-If `pop.sh` exits non-zero and the JSON output contains `"error":"cli_not_found"` or `"error":"deploy_failed"`, fall back to MCP tools. Run these steps in order. **Stop and report the error to the user if any step fails.**
+If the CLI is not available (`setup.sh` reports `cli: false`), fall back to MCP tools. Run these steps in order. **Stop and report the error to the user if any step fails.**
 
 ### 4a. Read `.popcorn.local.json`
 

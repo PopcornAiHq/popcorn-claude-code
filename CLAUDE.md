@@ -11,8 +11,7 @@ popcorn-claude-code/
 │   │   ├── SKILL.md       ← Always-on: setup detection + CLI reference + MCP fallback
 │   │   └── setup.sh       ← Deterministic setup: CLI install, auth, MCP
 │   ├── pop/
-│   │   ├── SKILL.md       ← /popcorn:pop — publish project to Popcorn channel
-│   │   └── pop.sh         ← Deploy script: tarball + upload + deploy via CLI
+│   │   └── SKILL.md       ← /popcorn:pop — publish project to Popcorn channel
 │   └── messages/
 │       └── SKILL.md       ← /popcorn:messages — pull channel context for iteration
 ├── .claude-plugin/
@@ -35,7 +34,7 @@ popcorn-claude-code/
 **/popcorn:pop** (slash command):
 - Publishes local project files to a Popcorn app channel via VM
 - Creates `.popcorn.local.json` to track channel link (gitignored)
-- Uses CLI `deploy push` with MCP fallback
+- Uses CLI `popcorn pop` with MCP fallback
 
 **/popcorn:messages** (slash command):
 - Pulls recent channel conversation into context
