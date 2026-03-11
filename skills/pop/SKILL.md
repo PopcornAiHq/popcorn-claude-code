@@ -1,7 +1,7 @@
 ---
 name: pop
 description: Publish your project to a Popcorn channel
-allowed-tools: Bash, popcorn_site_create, popcorn_site_presign, popcorn_site_pull
+allowed-tools: Bash
 ---
 
 # /popcorn:pop — Publish to Popcorn
