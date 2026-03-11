@@ -1,74 +1,154 @@
 ---
 name: pop
 description: Publish your project to a Popcorn channel
-allowed-tools: Bash, Agent
+allowed-tools: Bash, popcorn_site_create, popcorn_site_presign, popcorn_site_pull
 ---
 
 # /popcorn:pop — Publish to Popcorn
 
-When the user runs `/popcorn:pop`, dispatch the entire flow to a subagent using the Agent tool with `subagent_type: "general-purpose"`. Pass the full prompt below as the agent's task.
+Publish local project files to a Popcorn app channel. The workspace VM pulls the tarball, unpacks, commits, and serves the site.
 
-Do NOT run the steps yourself — the subagent handles everything autonomously.
+## Step 1: Verify setup
 
-## Agent Prompt
+Run the setup check from the **popcorn** skill:
 
-You are publishing this project to a Popcorn app channel. Follow these steps in order. Stop and report back if any step fails.
+```bash
+bash "${CLAUDE_PLUGIN_ROOT}/skills/popcorn/setup.sh"
+```
 
-### Principles
+The last line is JSON: `{"cli":true,"auth":true,"mcp":true}`. If `cli` or `auth` is `false`, the setup script auto-installs missing components. If it still reports `false`, tell the user what failed (the script prints instructions).
 
-- `/popcorn:pop` should feel like one action. Handle setup invisibly on first run.
-- Infer, don't interrupt. Minimize prompts.
-- GitHub is never involved. Files go to Popcorn's VM. No branches, no pushes.
+## Step 2: Extract parameters
 
-### popcorn.json Schema
+From the user's message, extract:
 
-Stored in the repo root. Tracks the link between local project and Popcorn channel.
+- **channel** — explicit site/channel name (optional). If not provided, defaults to `pop-<directory-name>`.
+- **context** — description of what changed (optional). Examples: "Added dark mode", "Fixed mobile layout".
+
+**Parsing rules:**
+- Single token that looks like a slug (lowercase, hyphens, no spaces) → channel name
+- Multiple words that read as natural language → context
+- Use `-` separator to provide both: text before is channel, after is context
+
+```
+/popcorn:pop                                     → defaults
+/popcorn:pop my-app                              → --channel my-app
+/popcorn:pop added dark mode                     → --context "Added dark mode"
+/popcorn:pop my-app - redesigned landing page    → --channel my-app --context "Redesigned landing page"
+```
+
+## Step 3: Deploy via CLI
+
+Run `pop.sh` with the extracted parameters:
+
+```bash
+bash "${CLAUDE_PLUGIN_ROOT}/skills/pop/pop.sh" [--channel NAME] [--context "description"]
+```
+
+The last line of output is JSON with the result:
+- Success: `{"conversation_id":"...","site_name":"...","version":3,"commit_hash":"..."}`
+- Error: `{"error":"...","detail":"..."}`
+
+## Step 4: MCP fallback
+
+If `pop.sh` exits non-zero and the JSON output contains `"error":"cli_not_found"` or `"error":"deploy_failed"`, fall back to MCP tools. Run these steps in order. **Stop and report the error to the user if any step fails.**
+
+### 4a. Read `.popcorn.local.json`
+
+```bash
+if [ -f .popcorn.local.json ]; then
+  cat .popcorn.local.json
+else
+  echo "{}"
+fi
+```
+
+If it exists, extract `conversation_id` and `site_name`. Otherwise this is a first deploy.
+
+### 4b. Create site (first deploy only)
+
+Use the MCP tool `popcorn_site_create`:
+
+```json
+{ "site_name": "pop-<directory-name>" }
+```
+
+Returns `conversation_id`. Skip this step if `.popcorn.local.json` already has a `conversation_id`. If this fails (e.g. site name taken), stop and report the error.
+
+### 4c. Get presigned upload URL
+
+Use the MCP tool `popcorn_site_presign`:
+
+```json
+{ "site_name": "<site_name>" }
+```
+
+Returns `upload_url`, `upload_fields`, `s3_key`. If this fails, stop and report the error.
+
+### 4d. Create and upload tarball
+
+```bash
+# Create tarball respecting .gitignore
+TARBALL=$(mktemp /tmp/pop-push-XXXXXX)
+mv "$TARBALL" "${TARBALL}.tar.gz"
+TARBALL="${TARBALL}.tar.gz"
+
+if git rev-parse --is-inside-work-tree &>/dev/null; then
+  git ls-files -co --exclude-standard | grep -v '^\.popcorn\.local\.json$' | tar czf "$TARBALL" -T -
+else
+  tar czf "$TARBALL" --exclude='.git' --exclude='node_modules' --exclude='.popcorn.local.json' .
+fi
+
+# Upload to S3 (substitute upload_fields from 4c)
+curl -f --show-error -X POST "<upload_url>" \
+  -F "key=<s3_key>" \
+  -F "Content-Type=application/gzip" \
+  -F "policy=<policy>" \
+  -F "x-amz-credential=<credential>" \
+  -F "x-amz-algorithm=<algorithm>" \
+  -F "x-amz-date=<date>" \
+  -F "x-amz-signature=<signature>" \
+  -F "file=@${TARBALL};type=application/gzip"
+
+rm -f "$TARBALL"
+```
+
+If the curl upload fails (non-2xx response), stop and report the S3 error. Do not proceed to step 4e.
+
+### 4e. Trigger deploy
+
+Use the MCP tool `popcorn_site_pull`:
 
 ```json
 {
-  "conversation_id": "<channel UUID>",
-  "channel": "pop-<project-name>",
-  "workspace_id": "<workspace-id>",
-  "workspace_name": "<workspace-name>",
-  "created_at": "<ISO 8601 timestamp>",
-  "updated_at": "<ISO 8601 timestamp>"
+  "site_name": "<site_name>",
+  "s3_key": "<s3_key from 4c>",
+  "conversation_id": "<conversation_id>",
+  "context": "<context message if provided>"
 }
 ```
 
-### Step 1: Verify setup
+Returns `version` and `commit_hash`. If this fails, report the error but note that files were uploaded — retrying just this step may work.
 
-Run the setup check from the **popcorn** skill (the always-on skill has the bash snippet and fix instructions). Fix anything that returns `false` before continuing.
+### 4f. Write `.popcorn.local.json`
 
-### Step 2: Check for popcorn.json
+```bash
+cat > .popcorn.local.json << JSONEOF
+{
+  "conversation_id": "<conversation_id>",
+  "site_name": "<site_name>"
+}
+JSONEOF
+```
 
-Look for `popcorn.json` in the repo root.
+Add to `.gitignore` if not already there:
 
-- **Found** → returning publish. Read the conversation_id and channel name.
-- **Not found** → first-time publish. Infer a channel name: `pop-<directory-name>` (e.g., project in `my-app/` → `#pop-my-app`).
+```bash
+grep -q '\.popcorn\.local\.json' .gitignore 2>/dev/null || echo '.popcorn.local.json' >> .gitignore
+```
 
-### Step 3: Send files to Popcorn's VM
+## Step 5: Report result
 
-> **TBD:** The CLI command or MCP tool to upload files to Popcorn's VM does not exist yet. When available, the flow is:
-
-Zip all project files (respecting .gitignore if present) and send to Popcorn via CLI or MCP.
-
-**First time (new):**
-- Create a repo on Popcorn's VM, commit as v0.
-- Create the app channel (`#pop-<name>`).
-- Notify the workspace that a new app channel was created.
-
-**Returning:**
-- Send files to the existing repo on Popcorn's VM, committed as the next version.
-- Notify the channel with a summary of what changed.
-
-### Step 4: Write popcorn.json
-
-**First time:** Create `popcorn.json` with the schema above. Get `workspace_id` and `workspace_name` from `popcorn --json whoami`. Set `conversation_id` from the channel created in Step 3. Set `created_at` and `updated_at` to now.
-
-**Returning:** Update `updated_at` only.
-
-### Step 5: Confirm
-
-Report to the developer: "Published to #pop-<name>."
-
-If first time, mention the new channel was created. If returning, include a brief summary of changes.
+- **Success:** "Published to #`<site_name>` (v`<version>`)"
+- **First deploy:** mention the new site was created
+- **Failure:** report the error from the JSON output
