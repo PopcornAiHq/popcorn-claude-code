@@ -2,6 +2,7 @@
 name: pop
 description: Publish your project to a Popcorn channel
 allowed-tools: Bash
+userTriggered: true
 ---
 
 # /popcorn:pop — Publish to Popcorn
