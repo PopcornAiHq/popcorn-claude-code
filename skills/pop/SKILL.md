@@ -1,74 +1,56 @@
 ---
 name: pop
 description: Publish your project to a Popcorn channel
-allowed-tools: Bash, Agent
+allowed-tools: Bash
 ---
 
 # /popcorn:pop — Publish to Popcorn
 
-When the user runs `/popcorn:pop`, dispatch the entire flow to a subagent using the Agent tool with `subagent_type: "general-purpose"`. Pass the full prompt below as the agent's task.
+Publish local project files to a Popcorn app channel. The workspace VM pulls the tarball, unpacks, commits, and serves the site.
 
-Do NOT run the steps yourself — the subagent handles everything autonomously.
+## Step 1: Verify setup
 
-## Agent Prompt
+Run the setup check from the **popcorn** skill:
 
-You are publishing this project to a Popcorn app channel. Follow these steps in order. Stop and report back if any step fails.
-
-### Principles
-
-- `/popcorn:pop` should feel like one action. Handle setup invisibly on first run.
-- Infer, don't interrupt. Minimize prompts.
-- GitHub is never involved. Files go to Popcorn's VM. No branches, no pushes.
-
-### popcorn.json Schema
-
-Stored in the repo root. Tracks the link between local project and Popcorn channel.
-
-```json
-{
-  "conversation_id": "<channel UUID>",
-  "channel": "pop-<project-name>",
-  "workspace_id": "<workspace-id>",
-  "workspace_name": "<workspace-name>",
-  "created_at": "<ISO 8601 timestamp>",
-  "updated_at": "<ISO 8601 timestamp>"
-}
+```bash
+bash "${CLAUDE_PLUGIN_ROOT}/skills/popcorn/setup.sh"
 ```
 
-### Step 1: Verify setup
+The last line is JSON: `{"cli":true,"auth":true,"mcp":true}`. If `cli` or `auth` is `false`, the setup script auto-installs missing components. If it still reports `false`, tell the user what failed (the script prints instructions).
 
-Run the setup check from the **popcorn** skill (the always-on skill has the bash snippet and fix instructions). Fix anything that returns `false` before continuing.
+## Step 2: Extract parameters
 
-### Step 2: Check for popcorn.json
+From the user's message, extract:
 
-Look for `popcorn.json` in the repo root.
+- **name** — explicit site name (optional). If not provided, the CLI defaults to `pop-<directory-name>`.
+- **context** — description of what changed (optional). Examples: "Added dark mode", "Fixed mobile layout".
 
-- **Found** → returning publish. Read the conversation_id and channel name.
-- **Not found** → first-time publish. Infer a channel name: `pop-<directory-name>` (e.g., project in `my-app/` → `#pop-my-app`).
+**Parsing rules:**
+- Single token that looks like a slug (lowercase, hyphens, no spaces) → site name
+- Multiple words that read as natural language → context
+- Use `-` separator to provide both: text before is name, after is context
 
-### Step 3: Send files to Popcorn's VM
+```
+/popcorn:pop                                     → defaults
+/popcorn:pop my-app                              → --name my-app
+/popcorn:pop added dark mode                     → --context "Added dark mode"
+/popcorn:pop my-app - redesigned landing page    → --name my-app --context "Redesigned landing page"
+```
 
-> **TBD:** The CLI command or MCP tool to upload files to Popcorn's VM does not exist yet. When available, the flow is:
+## Step 3: Deploy via CLI
 
-Zip all project files (respecting .gitignore if present) and send to Popcorn via CLI or MCP.
+```bash
+popcorn --json pop [--name NAME] [--context "description"]
+```
 
-**First time (new):**
-- Create a repo on Popcorn's VM, commit as v0.
-- Create the app channel (`#pop-<name>`).
-- Notify the workspace that a new app channel was created.
+The CLI handles everything: tarball creation, S3 upload, VM deploy, `.popcorn.local.json` management, and `.gitignore` updates.
 
-**Returning:**
-- Send files to the existing repo on Popcorn's VM, committed as the next version.
-- Notify the channel with a summary of what changed.
+Output is JSON:
+- Success: `{"conversation_id":"...","site_name":"...","version":3,"commit_hash":"..."}`
+- Error: CLI exits non-zero with error message
 
-### Step 4: Write popcorn.json
+## Step 4: Report result
 
-**First time:** Create `popcorn.json` with the schema above. Get `workspace_id` and `workspace_name` from `popcorn --json whoami`. Set `conversation_id` from the channel created in Step 3. Set `created_at` and `updated_at` to now.
-
-**Returning:** Update `updated_at` only.
-
-### Step 5: Confirm
-
-Report to the developer: "Published to #pop-<name>."
-
-If first time, mention the new channel was created. If returning, include a brief summary of changes.
+- **Success:** "Published to #`<site_name>` (v`<version>`)"
+- **First deploy:** mention the new site was created
+- **Failure:** report the error from the JSON output

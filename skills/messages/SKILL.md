@@ -14,12 +14,12 @@ Loads recent messages from the linked Popcorn app channel into the current sessi
 
 Run the setup check from the **popcorn** skill (the always-on skill has the bash snippet and fix instructions). Fix anything that returns `false` before continuing.
 
-### Step 1: Read popcorn.json
+### Step 1: Read .popcorn.local.json
 
-Look for `popcorn.json` in the repo root.
+Look for `.popcorn.local.json` in the repo root.
 
-- **Found** → read the `conversation_id` and `channel` name.
-- **Not found** → tell the user: "No popcorn.json found. Run `/popcorn:pop` first to publish this project."
+- **Found** → read the `conversation_id` and `site_name`.
+- **Not found** → tell the user: "No `.popcorn.local.json` found. Run `/popcorn:pop` first to publish this project."
 
 ### Step 2: Fetch recent messages
 

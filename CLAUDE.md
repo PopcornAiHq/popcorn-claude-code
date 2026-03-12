@@ -8,7 +8,8 @@ Popcorn messaging plugin for Claude Code.
 popcorn-claude-code/
 ├── skills/
 │   ├── popcorn/
-│   │   └── SKILL.md       ← Always-on: setup detection + CLI reference + MCP fallback
+│   │   ├── SKILL.md       ← Always-on: setup detection + CLI reference + MCP fallback
+│   │   └── setup.sh       ← Deterministic setup: CLI install, auth, MCP
 │   ├── pop/
 │   │   └── SKILL.md       ← /popcorn:pop — publish project to Popcorn channel
 │   └── messages/
@@ -17,7 +18,7 @@ popcorn-claude-code/
 │   ├── plugin.json         ← Plugin manifest
 │   └── marketplace.json    ← Marketplace listing
 ├── scripts/
-│   └── test-install.sh  ← Isolated env for testing plugin install flow
+│   └── test-install.sh     ← Isolated env for testing plugin install flow
 ├── CLAUDE.md
 ├── README.md
 └── LICENSE
@@ -32,8 +33,8 @@ popcorn-claude-code/
 
 **/popcorn:pop** (slash command):
 - Publishes local project files to a Popcorn app channel via VM
-- Creates `popcorn.json` to track channel link
-- Runs as a subagent
+- Creates `.popcorn.local.json` to track channel link (gitignored)
+- Uses CLI `popcorn pop` with MCP fallback
 
 **/popcorn:messages** (slash command):
 - Pulls recent channel conversation into context
