@@ -59,13 +59,15 @@ if [ "$CLI" = true ]; then
   fi
 fi
 
-# Step 3: MCP
+# Step 3: MCP (only if CLI is not available — CLI is preferred)
 MCP_FILE="$HOME/.claude.json"
 if [ -f "$MCP_FILE" ] && grep -q '"popcorn"' "$MCP_FILE" 2>/dev/null; then
   MCP=true
   echo -e "${DIM}MCP: configured${RESET}"
+elif [ "$CLI" = true ]; then
+  echo -e "${DIM}MCP: skipped (CLI available)${RESET}"
 else
-  echo -e "${YELLOW}Adding Popcorn MCP server...${RESET}"
+  echo -e "${YELLOW}Adding Popcorn MCP server (CLI not available)...${RESET}"
   if claude mcp add popcorn --transport http https://mcp.popcorn.ai/mcp 2>&1; then
     MCP=true
     CHANGED=true

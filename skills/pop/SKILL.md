@@ -9,92 +9,134 @@ userTriggered: true
 
 Publish local project files to a Popcorn app channel. The workspace VM pulls the tarball, unpacks, commits, and serves the site.
 
-## Step 1: Verify setup
+This command should "just work" — handle setup, context generation, and error recovery automatically. The user should go from zero to a live site in one invocation.
 
-Run the setup check from the **popcorn** skill:
+## Step 1: Ensure CLI is ready
 
 ```bash
 bash "${CLAUDE_PLUGIN_ROOT}/skills/popcorn/setup.sh"
 ```
 
-The last line is JSON: `{"cli":true,"auth":true,"mcp":true}`. If `cli` or `auth` is `false`, the setup script auto-installs missing components. If it still reports `false`, tell the user what failed (the script prints instructions).
+The last line is JSON. If `cli` or `auth` is `false` after the script runs, stop and tell the user what failed — don't proceed to deploy.
 
-## Step 2: Extract parameters
+## Step 2: Check channel link
 
-From the user's message, extract:
+Check if `.popcorn.local.json` exists in the repo root.
 
-- **name** — explicit site name (optional). If not provided, the CLI defaults to `pop-<directory-name>`.
-- **context** — description of what changed (optional). Examples: "Added dark mode", "Fixed mobile layout".
+- **Exists** → read `conversation_id` and `site_name`. Proceed to Step 3.
+- **Missing, but this isn't the first deploy** → the file may have been deleted or the user switched branches. Try to find the existing channel:
 
-**Parsing rules:**
-- Single token that looks like a slug (lowercase, hyphens, no spaces) → site name
-- Multiple words that read as natural language → context
-- Use `-` separator to provide both: text before is name, after is context
+```bash
+# Default channel name is pop-<directory-name>, or the user may have specified --name
+popcorn --json info '#pop-<directory-name>'
+```
+
+If the channel exists, tell the user: "Found existing channel #`<name>`. Deploy to this channel?" If they confirm, proceed — the CLI will recreate `.popcorn.local.json` on deploy. If they decline, proceed as a fresh deploy (new channel).
+
+If no existing channel is found, this is a first deploy. Proceed normally.
+
+## Step 3: Extract parameters
+
+From the user's free-form text (everything after `/pop`), infer:
+
+- **name** — a site name, if the user mentioned one (optional). If not provided, the CLI defaults to `pop-<directory-name>`.
+- **context** — a description of what changed, if the user described it (optional). Will be auto-generated in Step 4 if not provided.
+
+The user may provide both, one, or neither in any natural phrasing. Examples:
 
 ```
-/popcorn:pop                                     → defaults
+/popcorn:pop                                     → defaults for both
 /popcorn:pop my-app                              → --name my-app
 /popcorn:pop added dark mode                     → --context "Added dark mode"
-/popcorn:pop my-app - redesigned landing page    → --name my-app --context "Redesigned landing page"
+/popcorn:pop deploy my-app with the new sidebar  → --name my-app --context "New sidebar"
 ```
 
-## Step 3: Auto-generate context
+Don't be rigid — interpret intent. When ambiguous, prefer treating text as context over name (context is more useful).
 
-If the user **provided context** in their `/pop` invocation (natural language text), use it as-is for `--context`. Skip this step.
+## Step 4: Ensure clean git state (git repos only)
 
-If no context was provided, **generate one automatically** from local changes:
+Check if this is a git repo (`git rev-parse --git-dir 2>/dev/null`). If it's **not a git repo**, skip this step entirely.
 
-**If this is a git repo:**
+If it is a git repo, ensure all work is committed and up to date before deploying:
+
+1. **Uncommitted changes?** Check `git status --porcelain`. If there are staged or unstaged changes, commit them. Use the conversation context to write a meaningful commit message.
+2. **Behind remote?** If the branch has an upstream (`git rev-parse --abbrev-ref @{upstream} 2>/dev/null`), pull to ensure local is up to date (`git pull`).
+3. **Note unpushed commits** — check `git log @{upstream}..HEAD --oneline 2>/dev/null`. If there are unpushed commits, remember this for Step 7 (don't block the deploy).
+
+This ensures the deployed version includes the latest work.
+
+## Step 5: Auto-generate context
+
+If the user already provided context text, use it as-is for `--context`. Skip this step.
+
+If no context was provided, generate one automatically.
+
+### Git repos
+
+**Read the deploy baseline:** If `.popcorn.local.json` exists (meaning a previous deploy happened), fetch the last deployed commit hash from the server:
 
 ```bash
-# Changes since last deploy (or all changes if first deploy)
-git log --oneline <commit_hash>..HEAD 2>/dev/null
-git diff --name-only <commit_hash> HEAD 2>/dev/null
-git diff --name-only 2>/dev/null
+popcorn --json status
 ```
 
-If no `commit_hash` baseline exists (first deploy), use:
+Parse `.data.commit_hash` from the response — this is the baseline for diffing.
+
+**Gather changes:**
+
 ```bash
-git log --oneline -5 2>/dev/null
+# If commit_hash baseline exists (subsequent deploy):
+git log --oneline <commit_hash>..HEAD
+git diff --name-only <commit_hash> HEAD
+
+# If no baseline (first deploy) or status failed:
+git log --oneline -5
 ```
 
-**Summarize** the changes into a short one-liner (same quality bar as a good commit message):
-- Describe the **intent**, not just "modified 3 files"
+**No changes detected?** If git log and diff return empty since the last deploy's `commit_hash`, tell the user: "No local changes detected since the last deploy. Do you still want to redeploy?" If they decline, stop. If they confirm, proceed with a context like "Redeploy without local changes".
+
+**Summarize** into a short one-liner (same quality bar as a good commit message):
+- Describe the **intent**, not just file names
 - Good: "Add dark mode toggle, update footer styling"
-- Good: "Fix responsive layout on mobile, add loading spinner"
 - Bad: "Updated index.html and styles.css"
 - Bad: "Various changes"
 
-Use this generated summary as the `--context` value.
+### Non-git projects
 
-## Step 4: Deploy via CLI
+No change detection is available. Use a generic context:
+- First deploy: "Initial deploy"
+- Subsequent deploys: "Update deploy" (or ask the user what changed)
+
+## Step 6: Deploy
 
 ```bash
 popcorn --json pop [--name NAME] --context "description"
 ```
 
-The CLI handles everything: tarball creation, S3 upload, VM deploy, `.popcorn.local.json` management, and `.gitignore` updates.
+The CLI handles: tarball creation, S3 upload, VM deploy, `.popcorn.local.json` management, `.gitignore` updates.
 
-Output is JSON:
-- Success: `{"conversation_id":"...","site_name":"...","version":3,"commit_hash":"..."}`
-- Error: CLI exits non-zero with error message
+**Do not create or modify `.popcorn.local.json` yourself.** The CLI owns this file — it writes `conversation_id` and `site_name` after each deploy. Writing it externally risks deploying to the wrong channel.
 
-### Update local state after deploy
+**Parse the response envelope:**
+- Success: `{"ok": true, "data": {"conversation_id":"...","site_name":"...","version":3,"commit_hash":"...","site_url":"..."}}`
+- Error: exit code non-zero, `{"ok": false, "error": "...", ...}` on stderr
 
-After a successful deploy, `.popcorn.local.json` is updated by the CLI with the new `commit_hash`. This becomes the baseline for the next deploy's change detection.
+Read `site_name`, `version`, and `site_url` from `.data` on success.
 
-## Step 5: Fetch site URL
+## Step 7: Report result
 
-After a successful deploy, fetch the channel info to get the site URL:
-
-```bash
-popcorn --json info '#<site_name>'
-```
-
-The response includes channel metadata. Look for a `site_url`, `url`, or `website` field. If the info response contains a URL, use it. If not available, omit the URL from the output (don't guess or construct one).
-
-## Step 6: Report result
-
-- **Success:** "Published to #`<site_name>` (v`<version>`)" followed by the site URL if available
+- **Success:** "Published to #`<site_name>` (v`<version>`)" followed by the `site_url` if present
 - **First deploy:** mention the new site was created
-- **Failure:** report the error from the JSON output
+- **Unpushed commits?** If Step 4 noted unpushed commits, remind the user and offer to push: "You have unpushed commits on `<branch>`. Want me to push?"
+- **Failure:** see error recovery below
+
+## Error Recovery
+
+If the deploy fails, don't just report the error — try to recover:
+
+| Error | Recovery |
+|-------|----------|
+| Stale channel config | The CLI auto-recreates the channel. If it still fails, delete `.popcorn.local.json` and retry |
+| VM error (build/deploy failure) | Report the `vm_error` details from the response. These are usually code issues (missing dependencies, build errors) — show the user the error so they can fix their code |
+| Network timeout | Retry once with `--timeout 120`. If it fails again, report the timeout |
+| 409 conflict (name taken) | The CLI auto-retries with a suffix. If it still fails, suggest the user provide a different `--name` |
+| Unknown error | Report the full error JSON so the user can debug |
