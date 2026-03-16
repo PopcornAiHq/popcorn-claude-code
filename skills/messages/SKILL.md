@@ -21,7 +21,7 @@ Look for `.popcorn.local.json` in the repo root.
 popcorn --json list-messages '#<site_name>' --limit 20
 ```
 
-Parse the response envelope — messages are in `.data.messages`. If the CLI is not installed or auth fails, run `bash "${CLAUDE_PLUGIN_ROOT}/skills/popcorn/setup.sh"` to fix it, then retry.
+Parse the response envelope — messages are in `.data.messages`. If the CLI is not installed or auth fails, run `bash "${CLAUDE_PLUGIN_ROOT}/skills/cli/setup.sh"` to fix it, then retry.
 
 ## Step 3: Present to the developer
 

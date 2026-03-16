@@ -1,18 +1,28 @@
 ---
-name: popcorn
-description: Popcorn messaging — setup and behavioral guardrails
+name: cli
+description: Popcorn CLI — setup, command discovery, and behavioral guardrails. Use for any Popcorn operation not covered by /pop or /messages.
 alwaysApply: true
 allowed-tools: Bash
 ---
 
-# Popcorn
+# Popcorn CLI
+
+## When to use skills vs CLI directly
+
+| Task | What to use |
+|------|-------------|
+| Deploy/publish site files | `/popcorn:pop` |
+| Pull channel conversation for iteration | `/popcorn:messages` |
+| **Everything else** (webhooks, channels, search, settings, etc.) | CLI directly — start here |
+
+If the user's request doesn't clearly match `/pop` or `/messages`, **use the CLI directly**. Run `popcorn <command> --help` or `popcorn commands` for discovery. Do not guess at a slash command.
 
 ## Setup
 
 **When the user asks you to do something with Popcorn** (send a message, read a channel, manage channels, etc.), run this command first — before any other Popcorn CLI call:
 
 ```bash
-bash "${CLAUDE_PLUGIN_ROOT}/skills/popcorn/setup.sh"
+bash "${CLAUDE_PLUGIN_ROOT}/skills/cli/setup.sh"
 ```
 
 The script checks CLI, auth, and MCP — installing/configuring anything missing automatically. The last line of output is JSON: `{"cli":true/false,"auth":true/false,"mcp":true/false}`.
@@ -25,16 +35,16 @@ Use **CLI mode** as the primary interface (cheaper, no context cost). Fall back 
 
 ---
 
+## Discovery
+
+Run `popcorn commands` to get the full CLI schema as structured JSON — all commands, arguments, types, choices, and defaults. Use this to discover commands and their usage rather than hardcoding recipes.
+
 ## Rules
 
 1. **Always quote `'#channel-name'`** in bash — unquoted `#` triggers shell glob expansion. The CLI resolves names to UUIDs automatically. Never search for a channel UUID first.
 2. **NEVER use `inbox` to find files or messages in a channel.** The inbox returns notifications from ALL channels and WILL give you the wrong result. Use `list-messages` instead.
 3. **Confirm before sending.** Always show the user exactly what will be sent and get confirmation before calling `send-message`.
 4. **Use `--json` for parsing** — all JSON output uses an envelope: `{"ok": true, "data": ...}` on success, `{"ok": false, "error": ...}` on stderr for errors. Parse `.data` from success responses.
-
-## Discovery
-
-Run `popcorn commands` to get the full CLI schema as structured JSON — all commands, arguments, types, choices, and defaults. Use this to discover commands and their usage rather than hardcoding recipes.
 
 ## Message Structure
 

@@ -7,11 +7,11 @@ Popcorn messaging plugin for Claude Code.
 ```
 popcorn-claude-code/
 ├── skills/
-│   ├── popcorn/
-│   │   ├── SKILL.md       ← Always-on: setup detection + CLI reference + MCP fallback
+│   ├── cli/
+│   │   ├── SKILL.md       ← Always-on: CLI routing, setup, command discovery, guardrails
 │   │   └── setup.sh       ← Deterministic setup: CLI install, auth, MCP
 │   ├── pop/
-│   │   └── SKILL.md       ← /popcorn:pop — publish project to Popcorn channel
+│   │   └── SKILL.md       ← /popcorn:pop — deploy/publish site files only
 │   └── messages/
 │       └── SKILL.md       ← /popcorn:messages — pull channel context for iteration
 ├── .claude-plugin/
@@ -26,9 +26,10 @@ popcorn-claude-code/
 
 ## Skills
 
-**popcorn** (alwaysApply: true):
+**cli** (alwaysApply: true):
+- Routes agent to correct skill vs direct CLI usage
 - Installs CLI and MCP on first use
-- Full CLI command reference and recipes
+- Command discovery via `popcorn commands`
 - Behavioral constraints (quote channels, never use inbox for file search, etc.)
 
 **/popcorn:pop** (slash command):

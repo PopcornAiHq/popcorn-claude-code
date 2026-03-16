@@ -1,6 +1,6 @@
 ---
 name: pop
-description: Publish your project to a Popcorn channel
+description: Deploy/publish local project files to a Popcorn channel. NOT for messaging, webhooks, channel management, or other CLI operations.
 allowed-tools: Bash
 userTriggered: true
 ---
@@ -14,7 +14,7 @@ This command should "just work" — handle setup, context generation, and error 
 ## Step 1: Ensure CLI is ready
 
 ```bash
-bash "${CLAUDE_PLUGIN_ROOT}/skills/popcorn/setup.sh"
+bash "${CLAUDE_PLUGIN_ROOT}/skills/cli/setup.sh"
 ```
 
 The last line is JSON. If `cli` or `auth` is `false` after the script runs, stop and tell the user what failed — don't proceed to deploy.
