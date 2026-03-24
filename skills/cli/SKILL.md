@@ -7,15 +7,13 @@ allowed-tools: Bash
 
 # Popcorn CLI
 
-## When to use skills vs CLI directly
+## Routing: CLI first, always
 
-| Task | What to use |
-|------|-------------|
-| Deploy/publish site files | `/popcorn:pop` |
-| Pull channel conversation for iteration | `/popcorn:messages` |
-| **Everything else** (webhooks, channels, search, settings, etc.) | CLI directly — start here |
+**Use the CLI directly for ALL Popcorn operations.** This includes deploying (`popcorn pop`), reading messages (`popcorn list-messages`), sending messages, managing channels — everything.
 
-If the user's request doesn't clearly match `/pop` or `/messages`, **use the CLI directly**. Run `popcorn <command> --help` or `popcorn commands` for discovery. Do not guess at a slash command.
+**`/popcorn:pop` and `/popcorn:messages` are user-triggered slash commands.** They provide guided workflows but are ONLY activated when the user explicitly types `/pop` or `/messages`. Never invoke them, never suggest them, never route to them. If the user asks to deploy or read messages without using the slash command, use the CLI directly.
+
+Run `popcorn <command> --help` or `popcorn commands` for discovery. Do not guess at a slash command.
 
 ## Setup
 
@@ -38,6 +36,10 @@ Use **CLI mode** as the primary interface (cheaper, no context cost). Fall back 
 ## Discovery
 
 Run `popcorn commands` to get the full CLI schema as structured JSON — all commands, arguments, types, choices, and defaults. Use this to discover commands and their usage rather than hardcoding recipes.
+
+## Updates
+
+The CLI auto-updates itself — it checks for new versions every 5 minutes and upgrades seamlessly. No manual intervention needed. To upgrade manually: `popcorn upgrade`. To disable auto-update (e.g. in CI): `export POPCORN_NO_UPDATE_CHECK=1`.
 
 ## Rules
 

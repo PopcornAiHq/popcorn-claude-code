@@ -18,7 +18,10 @@ popcorn-claude-code/
 │   ├── plugin.json         ← Plugin manifest
 │   └── marketplace.json    ← Marketplace listing
 ├── scripts/
-│   └── test-install.sh     ← Isolated env for testing plugin install flow
+│   ├── test-install.sh     ← Isolated env for testing plugin install flow
+│   └── check-version-bump.sh ← Pre-commit hook: warns on missing version bump
+├── Makefile                    ← make bump v=X.Y.Z
+├── .pre-commit-config.yaml     ← version bump reminder hook
 ├── CLAUDE.md
 ├── README.md
 └── LICENSE
@@ -47,6 +50,20 @@ This plugin has no code dependencies. It provides skills that guide the agent to
 - **popcorn-cli** (auto-installed on first use via uv/pipx/pip) — full-featured CLI
 - **Popcorn MCP server** (`https://mcp.popcorn.ai/mcp`) — lighter alternative
 
+## Versioning
+
+**Bump the version with every commit.** Both `.claude-plugin/plugin.json` and `.claude-plugin/marketplace.json` must stay in sync.
+
+- **Patch** (0.7.0 → 0.7.1): default for any commit
+- **Minor** (0.7.x → 0.8.0): notable feature additions
+- **Major** (0.x → 1.x): only when explicitly requested
+
+```bash
+make bump v=X.Y.Z    # updates both files, stages, commits
+```
+
+A pre-commit hook warns if source files are staged without a version bump.
+
 ## Releasing
 
-Update version in `.claude-plugin/plugin.json` and `.claude-plugin/marketplace.json`, then push.
+After bumping: `git push`.

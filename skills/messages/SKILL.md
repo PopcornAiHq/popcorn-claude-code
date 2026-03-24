@@ -1,7 +1,8 @@
 ---
 name: messages
-description: Pull recent channel conversation into context for iteration
+description: Pull recent channel conversation into context for iteration. USER-TRIGGERED ONLY — never invoke pre-emptively. For general message reading, use the CLI directly (popcorn list-messages).
 allowed-tools: Bash
+userTriggered: true
 ---
 
 # /popcorn:messages — Pull Channel Context

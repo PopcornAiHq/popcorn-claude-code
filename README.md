@@ -26,6 +26,7 @@ This plugin works with either transport:
 | | CLI | MCP |
 |---|---|---|
 | Install | Auto-installed on first use | Auto-configured on first use |
+| Updates | Auto-updates itself (or `popcorn upgrade`) | N/A |
 | Features | Full (30+ commands) | Subset |
 | Context usage | Minimal (runs in shell) | Higher (MCP tool calls) |
 | Recommended | Yes | Fallback |
