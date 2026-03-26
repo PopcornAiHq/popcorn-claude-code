@@ -120,11 +120,11 @@ The CLI handles: tarball creation, S3 upload, VM deploy, `.popcorn.local.json` m
 - Success: `{"ok": true, "data": {"conversation_id":"...","site_name":"...","version":3,"commit_hash":"...","site_url":"..."}}`
 - Error: exit code non-zero, `{"ok": false, "error": "...", ...}` on stderr
 
-Read `site_name`, `version`, and `site_url` from `.data` on success.
+Read `site_name` and `version` from `.data` on success.
 
 ## Step 7: Report result
 
-- **Success:** "Published to #`<site_name>` (v`<version>`)" followed by the `site_url` if present
+- **Success:** "Published to #`<site_name>` (v`<version>`)"
 - **First deploy:** mention the new site was created
 - **Unpushed commits?** If Step 4 noted unpushed commits, remind the user and offer to push: "You have unpushed commits on `<branch>`. Want me to push?"
 - **Failure:** see error recovery below
