@@ -1,6 +1,6 @@
 ---
 name: pop
-description: Deploy/publish local project files to a Popcorn channel. USER-TRIGGERED ONLY — never invoke pre-emptively. For general deploy requests, use the CLI directly (popcorn pop).
+description: Deploy/publish local project files to a Popcorn channel. USER-TRIGGERED ONLY — never invoke pre-emptively. For general deploy requests, use the CLI directly (popcorn site deploy).
 allowed-tools: Bash
 userTriggered: true
 ---
@@ -28,7 +28,7 @@ Check if `.popcorn.local.json` exists in the repo root.
 
 ```bash
 # Default channel name is pop-<directory-name>, or the user may have specified --name
-popcorn --json info '#pop-<directory-name>'
+popcorn --json channel info '#pop-<directory-name>'
 ```
 
 If the channel exists, tell the user: "Found existing channel #`<name>`. Deploy to this channel?" If they confirm, proceed — the CLI will recreate `.popcorn.local.json` on deploy. If they decline, proceed as a fresh deploy (new channel).
@@ -76,7 +76,7 @@ If no context was provided, generate one automatically.
 **Read the deploy baseline:** If `.popcorn.local.json` exists (meaning a previous deploy happened), fetch the last deployed commit hash from the server:
 
 ```bash
-popcorn --json status
+popcorn --json site status
 ```
 
 Parse `.data.commit_hash` from the response — this is the baseline for diffing.
@@ -109,7 +109,7 @@ No change detection is available. Use a generic context:
 ## Step 6: Deploy
 
 ```bash
-popcorn --json pop [--name NAME] --context "description"
+popcorn --json site deploy [--name NAME] --context "description"
 ```
 
 The CLI handles: tarball creation, S3 upload, VM deploy, `.popcorn.local.json` management, `.gitignore` updates.

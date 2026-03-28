@@ -9,53 +9,45 @@ allowed-tools: Bash
 
 ## Routing
 
-**Use the CLI directly for ALL Popcorn operations.** This includes deploying (`popcorn pop`), reading messages (`popcorn list-messages`), sending messages, managing channels — everything.
+**Use the CLI directly for ALL Popcorn operations.**
 
-**`/popcorn:pop` is a user-triggered slash command.** It provides a guided deploy workflow but is ONLY activated when the user explicitly types `/pop`. Never invoke it, never suggest it, never route to it. If the user asks to deploy or publish without using the slash command, use the CLI or MCP path below.
+**`/popcorn:pop` is a user-triggered slash command.** Never invoke it, never suggest it, never route to it. If the user asks to deploy or publish without using the slash command, use the CLI or MCP path below.
 
-Run `popcorn <command> --help` or `popcorn commands` for discovery. Do not guess at a slash command.
+Run `popcorn <command> --help` or `popcorn commands` for discovery.
 
 ### Deploy path selection
 
 | Environment              | User says `/pop`  | User says "publish this" |
 |--------------------------|-------------------|--------------------------|
-| Terminal + CLI available | Pop skill         | `popcorn pop` via CLI    |
+| Terminal + CLI available | Pop skill         | `popcorn site deploy` via CLI |
 | Terminal + no CLI        | Pop skill         | MCP + pop-upload.sh      |
 | Non-terminal (Cowork)   | Pop skill         | MCP + pop-upload.sh      |
 
-In the terminal (Claude Code), the CLI is the preferred path. Outside the terminal (Cowork, etc.), MCP is the primary path since the CLI is likely unavailable.
-
 ## Setup
 
-**When the user asks you to do something with Popcorn** (send a message, read a channel, manage channels, etc.), run this command first — before any other Popcorn CLI call:
+**When the user asks you to do something with Popcorn**, run this command first — before any other Popcorn CLI call:
 
 ```bash
 bash "${CLAUDE_PLUGIN_ROOT}/skills/cli/setup.sh"
 ```
 
-The script checks CLI, auth, and MCP — installing/configuring anything missing automatically. The last line of output is JSON: `{"cli":true/false,"auth":true/false,"mcp":true/false}`.
+The last line of output is JSON: `{"cli":true/false,"auth":true/false,"mcp":true/false}`.
 
 If any component is still `false` after the script runs, tell the user what failed and how to fix it manually. If MCP was just added, tell the user to restart Claude Code.
 
-**Skip this** if the user isn't doing a Popcorn action. The `/popcorn:pop` skill runs setup itself — no need to run it twice.
-
-Use **CLI mode** as the primary interface (cheaper, no context cost). Fall back to MCP tools when the CLI is unavailable.
+**Skip this** if the user isn't doing a Popcorn action, or if `/popcorn:pop` is handling the request.
 
 ---
 
-## Discovery
-
-Run `popcorn commands` to get the full CLI schema as structured JSON — all commands, arguments, types, choices, and defaults. Use this to discover commands and their usage rather than hardcoding recipes.
-
 ## Updates
 
-The CLI auto-updates itself — it checks for new versions every 5 minutes and upgrades seamlessly. No manual intervention needed. To upgrade manually: `popcorn upgrade`. To disable auto-update (e.g. in CI): `export POPCORN_NO_UPDATE_CHECK=1`.
+The CLI auto-updates. To upgrade manually: `popcorn upgrade`.
 
 ## Rules
 
-1. **Always quote `'#channel-name'`** in bash — unquoted `#` triggers shell glob expansion. The CLI resolves names to UUIDs automatically. Never search for a channel UUID first.
-2. **NEVER use `inbox` to find files or messages in a channel.** The inbox returns notifications from ALL channels and WILL give you the wrong result. Use `list-messages` or MCP `read_messages` instead.
-3. **Confirm before sending.** Always show the user exactly what will be sent and get confirmation before calling `send-message` or MCP `post_message`.
+1. **Always quote `'#channel-name'`** in bash — unquoted `#` triggers shell glob expansion. To find channels by name, use `channel list`.
+2. **Use `message list` to read messages from a channel**, never `workspace inbox`.
+3. **Confirm before sending.** Always show the user exactly what will be sent and get confirmation before calling `message send` or MCP `post_message`.
 4. **Use `--json` for parsing** — all CLI JSON output uses an envelope: `{"ok": true, "data": ...}` on success, `{"ok": false, "error": ...}` on stderr for errors. Parse `.data` from success responses.
 
 ## Message Structure
