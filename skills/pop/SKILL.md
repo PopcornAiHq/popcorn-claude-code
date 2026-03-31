@@ -19,30 +19,38 @@ bash "${CLAUDE_PLUGIN_ROOT}/skills/cli/setup.sh"
 
 The last line is JSON. If `cli` or `auth` is `false` after the script runs, stop and tell the user what failed — don't proceed to deploy.
 
-## Step 2: Check channel link
+## Step 2: Resolve target channel
 
-First, check if the user specified a **target channel** in their input (see Step 3). A token prefixed with `#` — or a bare channel name when intent is clear — targets an existing channel directly.
+Determine where to deploy using these sources, in priority order:
 
-- **Target channel specified** → look it up immediately:
+### 1. User specified a target channel (see Step 3)
+
+A `#channel-name` or bare name with clear intent → look it up:
 
 ```bash
 popcorn --json channel info '#<channel-name>'
 ```
 
-If found → use it, no confirmation needed. The CLI will recreate `.popcorn.local.json` on deploy.
-If not found → stop and tell the user: "Channel #`<channel-name>` not found." Don't fall back to creating a new channel — the user explicitly targeted one.
+- **Found** → use it, no confirmation needed.
+- **Not found** → proceed as a new deploy using the channel name as `--name`.
 
-- **No target channel, `.popcorn.local.json` exists** → read `conversation_id` and `site_name`. Proceed to Step 3.
-- **No target channel, `.popcorn.local.json` missing** → the file may have been deleted or the user switched branches. Try to find the existing channel:
+### 2. Agent memory has deploy history for this project
+
+Check your memory for previous deploys from this project directory. If you've deployed before:
+
+- **Single previous target** → look it up. If found, tell the user: "Last deploy went to #`<name>`. Deploy there again?" If they confirm, proceed. If they decline, proceed as a fresh deploy.
+- **Multiple previous targets** → list them and ask: "You've previously deployed to #`<a>` and #`<b>`. Which channel, or create a new one?"
+
+### 3. No history, no target specified
+
+Try the default channel name:
 
 ```bash
-# Default channel name is pop-<directory-name>, or the user may have specified --name
 popcorn --json channel info '#pop-<directory-name>'
 ```
 
-If the channel exists, tell the user: "Found existing channel #`<name>`. Deploy to this channel?" If they confirm, proceed — the CLI will recreate `.popcorn.local.json` on deploy. If they decline, proceed as a fresh deploy (new channel).
-
-If no existing channel is found, this is a first deploy. Proceed normally.
+If found → ask: "Found existing channel #`<name>`. Deploy to this channel?"
+If not found → first deploy. Proceed normally.
 
 ## Step 3: Extract parameters
 
@@ -85,10 +93,10 @@ If no context was provided, generate one automatically.
 
 ### Git repos
 
-**Read the deploy baseline:** If `.popcorn.local.json` exists (meaning a previous deploy happened), fetch the last deployed commit hash from the server:
+**Read the deploy baseline:** If deploying to an existing channel (resolved in Step 2), fetch the last deployed commit hash from the server:
 
 ```bash
-popcorn --json site status
+popcorn --json site status --name '<channel-name>'
 ```
 
 Parse `.data.commit_hash` from the response — this is the baseline for diffing.
@@ -115,7 +123,7 @@ git log --oneline -5
 ### Non-git projects
 
 No change detection is available. Use a generic context:
-- First deploy: "Initial deploy"
+- First deploy (no deploy history in memory): "Initial deploy"
 - Subsequent deploys: "Update deploy" (or ask the user what changed)
 
 ## Step 6: Deploy
@@ -124,15 +132,17 @@ No change detection is available. Use a generic context:
 popcorn --json site deploy [--name NAME] --context "description"
 ```
 
-The CLI handles: tarball creation, S3 upload, VM deploy, `.popcorn.local.json` management, `.gitignore` updates.
+The CLI handles: tarball creation, S3 upload, and VM deploy.
 
-**Do not create or modify `.popcorn.local.json` yourself.** The CLI owns this file — it writes `conversation_id` and `site_name` after each deploy. Writing it externally risks deploying to the wrong channel.
+**Ignore `.popcorn.local.json`** — the CLI may still write this file, but the agent should not read or depend on it. Use agent memory for deploy tracking instead.
 
 **Parse the response envelope:**
 - Success: `{"ok": true, "data": {"conversation_id":"...","site_name":"...","version":3,"commit_hash":"...","site_url":"..."}}`
 - Error: exit code non-zero, `{"ok": false, "error": "...", ...}` on stderr
 
 Read `site_name` and `version` from `.data` on success.
+
+**Save to memory:** After a successful deploy, save or update a memory recording the deploy — channel name, version, and commit hash. This enables future deploys to resolve the target channel and generate accurate diffs.
 
 ## Step 7: Report result
 
@@ -147,7 +157,7 @@ If the deploy fails, don't just report the error — try to recover:
 
 | Error | Recovery |
 |-------|----------|
-| Stale channel config | The CLI auto-recreates the channel. If it still fails, delete `.popcorn.local.json` and retry |
+| Stale channel config | The CLI auto-recreates the channel. If it still fails, retry with a fresh `--name` |
 | VM error (build/deploy failure) | Report the `vm_error` details from the response. These are usually code issues (missing dependencies, build errors) — show the user the error so they can fix their code |
 | Network timeout | Retry once with `--timeout 120`. If it fails again, report the timeout |
 | 409 conflict (name taken) | The CLI auto-retries with a suffix. If it still fails, suggest the user provide a different `--name` |

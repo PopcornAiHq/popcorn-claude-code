@@ -6,7 +6,7 @@
   },
   "metadata": {
     "description": "Popcorn messaging integration for Claude Code",
-    "version": "0.9.1"
+    "version": "0.9.2"
   },
   "plugins": [
     {
