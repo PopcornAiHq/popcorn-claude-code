@@ -21,10 +21,19 @@ The last line is JSON. If `cli` or `auth` is `false` after the script runs, stop
 
 ## Step 2: Check channel link
 
-Check if `.popcorn.local.json` exists in the repo root.
+First, check if the user specified a **target channel** in their input (see Step 3). A token prefixed with `#` — or a bare channel name when intent is clear — targets an existing channel directly.
 
-- **Exists** → read `conversation_id` and `site_name`. Proceed to Step 3.
-- **Missing, but this isn't the first deploy** → the file may have been deleted or the user switched branches. Try to find the existing channel:
+- **Target channel specified** → look it up immediately:
+
+```bash
+popcorn --json channel info '#<channel-name>'
+```
+
+If found → use it, no confirmation needed. The CLI will recreate `.popcorn.local.json` on deploy.
+If not found → stop and tell the user: "Channel #`<channel-name>` not found." Don't fall back to creating a new channel — the user explicitly targeted one.
+
+- **No target channel, `.popcorn.local.json` exists** → read `conversation_id` and `site_name`. Proceed to Step 3.
+- **No target channel, `.popcorn.local.json` missing** → the file may have been deleted or the user switched branches. Try to find the existing channel:
 
 ```bash
 # Default channel name is pop-<directory-name>, or the user may have specified --name
@@ -39,19 +48,22 @@ If no existing channel is found, this is a first deploy. Proceed normally.
 
 From the user's free-form text (everything after `/pop`), infer:
 
-- **name** — a site name, if the user mentioned one (optional). If not provided, the CLI defaults to `pop-<directory-name>`.
+- **target channel** — an existing channel to deploy to. Identified by a `#` prefix (e.g., `#my-channel`). A bare name also works when the user's intent is clearly to target an existing channel (e.g., "deploy to my-channel"). Strip the `#` prefix before lookup.
+- **name** — a site name for a new deploy, if the user mentioned one (optional). If not provided, the CLI defaults to `pop-<directory-name>`. **Ignored when a target channel is specified** — the existing channel's name is used instead.
 - **context** — a description of what changed, if the user described it (optional). Will be auto-generated in Step 4 if not provided.
 
-The user may provide both, one, or neither in any natural phrasing. Examples:
+The user may provide any combination in natural phrasing. Examples:
 
 ```
 /popcorn:pop                                     → defaults for both
-/popcorn:pop my-app                              → --name my-app
+/popcorn:pop my-app                              → --name my-app (new deploy)
 /popcorn:pop added dark mode                     → --context "Added dark mode"
 /popcorn:pop deploy my-app with the new sidebar  → --name my-app --context "New sidebar"
+/popcorn:pop #my-channel                         → target existing #my-channel
+/popcorn:pop #my-channel added dark mode         → target #my-channel, --context "Added dark mode"
 ```
 
-Don't be rigid — interpret intent. When ambiguous, prefer treating text as context over name (context is more useful).
+Don't be rigid — interpret intent. When ambiguous between name and context, prefer context (more useful). When ambiguous between name and target channel, prefer target channel if the token has a `#` prefix.
 
 ## Step 4: Ensure clean git state (git repos only)
 
