@@ -38,7 +38,7 @@ popcorn-claude-code/
 
 **/popcorn:pop** (slash command, user-triggered):
 - Publishes local project files to a Popcorn app channel via VM
-- Creates `.popcorn.local.json` to track channel link (gitignored)
+- Reads `.popcorn.local.json` (v2: multi-target, workspace-aware) for target resolution
 - Wraps CLI `popcorn site deploy`
 
 ## Dependencies

@@ -34,14 +34,22 @@ popcorn --json channel info '#<channel-name>'
 - **Found** → use it, no confirmation needed.
 - **Not found** → proceed as a new deploy using the channel name as `--name`.
 
-### 2. Agent memory has deploy history for this project
+### 2. Check `.popcorn.local.json` for existing targets
 
-Check your memory for previous deploys from this project directory. If you've deployed before:
+The CLI maintains a v2 local state file with deploy targets:
 
-- **Single previous target** → look it up. If found, tell the user: "Last deploy went to #`<name>`. Deploy there again?" If they confirm, proceed. If they decline, proceed as a fresh deploy.
-- **Multiple previous targets** → list them and ask: "You've previously deployed to #`<a>` and #`<b>`. Which channel, or create a new one?"
+```bash
+cat .popcorn.local.json 2>/dev/null
+```
 
-### 3. No history, no target specified
+If the file exists and has targets:
+- **Single target matching current workspace** → tell the user: "Last deploy went to #`<name>`. Deploy there again?" If they confirm, proceed. If they decline, proceed as a fresh deploy.
+- **Multiple targets** → list them and ask: "You have deploy targets: `<a>` (workspace X), `<b>` (workspace Y). Which one, or create a new one?"
+- **Targets exist but none match current workspace** → "This project has deploys in other workspaces. Deploy as a new target in `<current workspace>`?"
+
+Agent memory is supplementary — use it for change context (commit hashes, what changed) but rely on the file for target resolution.
+
+### 3. No file, no target specified
 
 Try the default channel name:
 
@@ -134,7 +142,7 @@ popcorn --json site deploy [--name NAME] --context "description"
 
 The CLI handles: tarball creation, S3 upload, and VM deploy.
 
-**Ignore `.popcorn.local.json`** — the CLI may still write this file, but the agent should not read or depend on it. Use agent memory for deploy tracking instead.
+The CLI writes `.popcorn.local.json` automatically (v2 format with workspace-aware targets). The agent should read this file for target resolution (Step 2) but does not need to write it when using the CLI path.
 
 **Parse the response envelope:**
 - Success: `{"ok": true, "data": {"conversation_id":"...","site_name":"...","version":3,"commit_hash":"...","site_url":"..."}}`
@@ -142,7 +150,7 @@ The CLI handles: tarball creation, S3 upload, and VM deploy.
 
 Read `site_name` and `version` from `.data` on success.
 
-**Save to memory:** After a successful deploy, save or update a memory recording the deploy — channel name, version, and commit hash. This enables future deploys to resolve the target channel and generate accurate diffs.
+**Save to memory:** After a successful deploy, save or update a memory recording the deploy context — version, commit hash, and what changed. The file (`.popcorn.local.json`) handles target resolution; memory handles change context for future diff generation.
 
 ## Step 7: Report result
 

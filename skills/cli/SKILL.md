@@ -68,7 +68,23 @@ mcp: whoami → confirm user + workspace
 ```
 
 ### 2. Check for existing channel
-Read `.popcorn.local.json` in the project root. If it exists, use the `conversation_id` from it. If not, ask the user for a channel name or offer to create a new one.
+Read `.popcorn.local.json` in the project root. This is a v2 format file with named targets:
+
+```json
+{
+  "version": 2,
+  "default_target": "pop-my-app",
+  "targets": {
+    "pop-my-app": {
+      "workspace_id": "...",
+      "conversation_id": "...",
+      "site_name": "pop-my-app"
+    }
+  }
+}
+```
+
+If the file exists, find a target matching the current workspace (from `whoami`). Use its `conversation_id`. If no match or no file, ask the user for a channel name or offer to create a new one.
 
 ### 3. Get channel + upload URL
 ```
@@ -104,4 +120,22 @@ mcp: update_channel(channel, s3_key="<from get_channel: upload.s3_key>", context
 
 ### 6. Persist + report
 
-Write the `local_json` from the response to `.popcorn.local.json`. Report the channel name, version, and site URL to the user.
+Update `.popcorn.local.json` with v2 format — read the existing file (if any), upsert the target by matching `(workspace_id, site_name)`, and set it as `default_target`:
+
+```json
+{
+  "version": 2,
+  "default_target": "<site_name>",
+  "targets": {
+    "<site_name>": {
+      "workspace_id": "<from whoami>",
+      "workspace_name": "<from whoami>",
+      "conversation_id": "<from deploy response>",
+      "site_name": "<from deploy response>",
+      "deployed_at": "<ISO timestamp>"
+    }
+  }
+}
+```
+
+Report the channel name, version, and site URL to the user.
