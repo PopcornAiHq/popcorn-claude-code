@@ -145,7 +145,7 @@ The CLI handles: tarball creation, S3 upload, and VM deploy.
 The CLI writes `.popcorn.local.json` automatically (v2 format with workspace-aware targets). The agent should read this file for target resolution (Step 2) but does not need to write it when using the CLI path.
 
 **Parse the response envelope:**
-- Success: `{"ok": true, "data": {"conversation_id":"...","site_name":"...","version":3,"commit_hash":"...","site_url":"..."}}`
+- Success: `{"ok": true, "data": {"conversation_id":"...","site_name":"...","version":3,"commit_hash":"...","subdomain":"...","site_url":"..."}}`
 - Error: exit code non-zero, `{"ok": false, "error": "...", ...}` on stderr
 
 Read `site_name` and `version` from `.data` on success.
@@ -154,7 +154,7 @@ Read `site_name` and `version` from `.data` on success.
 
 ## Step 7: Report result
 
-- **Success:** "Published to #`<site_name>` (v`<version>`)"
+- **Success:** "Published to #`<site_name>` (v`<version>`) — `<site_url>`" where `site_url` is from the deploy response `.data.site_url` (e.g. `https://pop-test--my-ws.popcorn.ing`)
 - **First deploy:** mention the new site was created
 - **Unpushed commits?** If Step 4 noted unpushed commits, remind the user and offer to push: "You have unpushed commits on `<branch>`. Want me to push?"
 - **Failure:** see error recovery below
