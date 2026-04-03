@@ -59,21 +59,18 @@ if [ "$CLI" = true ]; then
   fi
 fi
 
-# Step 3: MCP (only if CLI is not available — CLI is preferred)
-MCP_FILE="$HOME/.claude.json"
-if [ -f "$MCP_FILE" ] && grep -q '"popcorn"' "$MCP_FILE" 2>/dev/null; then
+# Step 3: MCP (always, user-scope — CLI handles deploys, MCP enables conversational features)
+if claude mcp list 2>/dev/null | grep -q 'popcorn'; then
   MCP=true
   echo -e "${DIM}MCP: configured${RESET}"
-elif [ "$CLI" = true ]; then
-  echo -e "${DIM}MCP: skipped (CLI available)${RESET}"
 else
-  echo -e "${YELLOW}Adding Popcorn MCP server (CLI not available)...${RESET}"
-  if claude mcp add popcorn --transport http https://mcp.popcorn.ai/mcp 2>&1; then
+  echo -e "${YELLOW}Adding Popcorn MCP server (user-scope)...${RESET}"
+  if claude mcp add popcorn --transport http --scope user https://mcp.popcorn.ai/mcp 2>&1; then
     MCP=true
     CHANGED=true
     echo -e "${GREEN}MCP: added (restart Claude Code to activate)${RESET}"
   else
-    echo -e "MCP: failed — run manually: claude mcp add popcorn --transport http https://mcp.popcorn.ai/mcp"
+    echo -e "MCP: failed — run manually: claude mcp add --scope user popcorn --transport http https://mcp.popcorn.ai/mcp"
   fi
 fi
 
