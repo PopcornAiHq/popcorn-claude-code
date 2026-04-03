@@ -60,7 +60,7 @@ Messages have `content.parts[]`, each with a `type`:
 
 ## MCP deploy flow
 
-When the CLI is unavailable but MCP tools are connected, use this flow to deploy:
+When the CLI is unavailable, or in non-terminal environments (e.g. Cowork), use this MCP flow to deploy:
 
 ### 1. Verify auth
 ```
@@ -120,7 +120,7 @@ mcp: update_channel(channel, s3_key="<from get_channel: upload.s3_key>", context
 
 ### 6. Persist + report
 
-Update `.popcorn.local.json` with v2 format — read the existing file (if any), upsert the target by matching `(workspace_id, site_name)`, and set it as `default_target`:
+After a successful deploy, update `.popcorn.local.json` so subsequent deploys resolve the target automatically. The file uses a v2 schema — read the existing file first (if any), then upsert:
 
 ```json
 {
@@ -130,12 +130,16 @@ Update `.popcorn.local.json` with v2 format — read the existing file (if any),
     "<site_name>": {
       "workspace_id": "<from whoami>",
       "workspace_name": "<from whoami>",
-      "conversation_id": "<from deploy response>",
+      "conversation_id": "<channel ID from deploy response>",
       "site_name": "<from deploy response>",
       "deployed_at": "<ISO timestamp>"
     }
   }
 }
 ```
+
+**Upsert rule:** Match existing targets by `(workspace_id, site_name)`. If found, update in place. If new, add with `site_name` as key. Always set `default_target` to the deployed target.
+
+The user may be prompted to approve the file write (plugins cannot auto-grant write permissions). This only happens once if they choose "allow all edits during this session".
 
 Report the channel name, version, and site URL to the user.

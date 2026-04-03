@@ -17,7 +17,11 @@ This command should "just work" — handle setup, context generation, and error 
 bash "${CLAUDE_PLUGIN_ROOT}/skills/cli/setup.sh"
 ```
 
-The last line is JSON. If `cli` or `auth` is `false` after the script runs, stop and tell the user what failed — don't proceed to deploy.
+The last line is JSON: `{"cli":true/false,"auth":true/false,"mcp":true/false}`.
+
+- If `cli` and `auth` are both `true` → proceed with the CLI deploy flow below.
+- If `cli` is `false` but `mcp` is `true` → fall back to the MCP deploy flow documented in the `cli` skill (see "MCP deploy flow" section). Use the same target resolution (Step 2), parameter extraction (Step 3), and context generation (Step 5) logic, but deploy via `get_channel` → `pop-upload.sh` → `update_channel` instead of the CLI.
+- If both `cli` and `mcp` are `false` → stop and tell the user what failed.
 
 ## Step 2: Resolve target channel
 
@@ -104,7 +108,7 @@ If no context was provided, generate one automatically.
 **Read the deploy baseline:** If deploying to an existing channel (resolved in Step 2), fetch the last deployed commit hash from the server:
 
 ```bash
-popcorn --json site status --name '<channel-name>'
+popcorn --json site status '<channel-name>'
 ```
 
 Parse `.data.commit_hash` from the response — this is the baseline for diffing.
@@ -137,7 +141,7 @@ No change detection is available. Use a generic context:
 ## Step 6: Deploy
 
 ```bash
-popcorn --json site deploy [--name NAME] --context "description"
+popcorn --json site deploy [NAME] --context "description"
 ```
 
 The CLI handles: tarball creation, S3 upload, and VM deploy.
