@@ -14,13 +14,13 @@ This command should "just work" — handle setup, context generation, and error 
 ## Step 1: Ensure CLI is ready
 
 ```bash
-bash "${CLAUDE_PLUGIN_ROOT}/skills/cli/setup.sh"
+bash "${CLAUDE_PLUGIN_ROOT}/skills/popcorn/setup.sh"
 ```
 
 The last line is JSON: `{"cli":true/false,"auth":true/false,"mcp":true/false}`.
 
 - If `cli` and `auth` are both `true` → proceed with the CLI deploy flow below.
-- If `cli` is `false` but `mcp` is `true` → fall back to the MCP deploy flow documented in the `cli` skill (see "MCP deploy flow" section). Use the same target resolution (Step 2), parameter extraction (Step 3), and context generation (Step 5) logic, but deploy via `get_channel` → `pop-upload.sh` → `update_channel` instead of the CLI.
+- If `cli` is `false` but `mcp` is `true` → use the MCP path in Step 6 below. Target resolution (Step 2), parameter extraction (Step 3), and context generation (Step 5) are the same for both paths.
 - If both `cli` and `mcp` are `false` → stop and tell the user what failed.
 
 ## Step 2: Resolve target channel
@@ -140,6 +140,8 @@ No change detection is available. Use a generic context:
 
 ## Step 6: Deploy
 
+### CLI path (preferred)
+
 ```bash
 popcorn --json site deploy [NAME] --context "description"
 ```
@@ -155,6 +157,65 @@ The CLI writes `.popcorn.local.json` automatically (v2 format with workspace-awa
 Read `site_name` and `version` from `.data` on success.
 
 **Save to memory:** After a successful deploy, save or update a memory recording the deploy context — version, commit hash, and what changed. The file (`.popcorn.local.json`) handles target resolution; memory handles change context for future diff generation.
+
+### MCP path (fallback — when CLI is unavailable)
+
+#### 6a. Verify auth
+```
+whoami → confirm user + workspace
+```
+
+#### 6b. Get channel + upload URL
+```
+get_channel(channel) → returns details, site status, presigned upload URL
+```
+
+If creating a new channel, call `update_channel(name="my-app")` first.
+
+#### 6c. Upload project files
+
+Write a config file with the upload parameters from `get_channel`, then run the upload script:
+
+```bash
+cat > /tmp/popcorn-upload-config.json << 'EOF'
+{
+  "upload_url": "<from get_channel response: upload.url>",
+  "upload_fields": { <from get_channel response: upload.fields> },
+  "project_dir": "/path/to/project"
+}
+EOF
+
+bash "${CLAUDE_PLUGIN_ROOT}/scripts/pop-upload.sh" /tmp/popcorn-upload-config.json
+```
+
+The script outputs `{"ok": true, "size_bytes": ...}` on success or `{"ok": false, "error": "..."}` on stderr on failure.
+
+#### 6d. Trigger deploy
+```
+update_channel(channel, s3_key="<from get_channel: upload.s3_key>", context="description of changes")
+```
+
+#### 6e. Persist state
+
+Update `.popcorn.local.json` so subsequent deploys resolve the target automatically. Read the existing file first (if any), then upsert:
+
+```json
+{
+  "version": 2,
+  "default_target": "<site_name>",
+  "targets": {
+    "<site_name>": {
+      "workspace_id": "<from whoami>",
+      "workspace_name": "<from whoami>",
+      "conversation_id": "<channel ID from deploy response>",
+      "site_name": "<from deploy response>",
+      "deployed_at": "<ISO timestamp>"
+    }
+  }
+}
+```
+
+**Upsert rule:** Match existing targets by `(workspace_id, site_name)`. If found, update in place. If new, add with `site_name` as key. Always set `default_target` to the deployed target.
 
 ## Step 7: Report result
 
