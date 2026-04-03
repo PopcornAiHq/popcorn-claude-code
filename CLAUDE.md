@@ -49,11 +49,17 @@ This plugin has no code dependencies. It provides skills that guide the agent to
 
 ## Versioning
 
-**Bump the version with every commit.** Both `.claude-plugin/plugin.json` and `.claude-plugin/marketplace.json` must stay in sync.
+**Bump the version with every set of changes.** Both `.claude-plugin/plugin.json` and `.claude-plugin/marketplace.json` must stay in sync.
 
-- **Patch** (0.7.0 → 0.7.1): default for any commit
+- **Patch** (0.7.0 → 0.7.1): default for any change
 - **Minor** (0.7.x → 0.8.0): notable feature additions
 - **Major** (0.x → 1.x): only when explicitly requested
+
+### Workflow
+
+1. Commit your changes first (do NOT include version bump in the same commit)
+2. Run `make bump v=X.Y.Z` — this creates a separate version bump commit
+3. `git push`
 
 ```bash
 make bump v=X.Y.Z    # updates both files, stages, commits
