@@ -1,7 +1,7 @@
 ---
 name: pop
 description: Deploy/publish local project files to a Popcorn channel. USER-TRIGGERED ONLY — never invoke pre-emptively. For general deploy requests, use the CLI directly (popcorn site deploy).
-allowed-tools: Bash
+allowed-tools: Bash, mcp__popcorn__whoami, mcp__popcorn__get_channel, mcp__popcorn__update_channel, mcp__popcorn__search
 userTriggered: true
 ---
 
@@ -185,7 +185,7 @@ cat > /tmp/popcorn-upload-config.json << 'EOF'
 }
 EOF
 
-bash "${CLAUDE_PLUGIN_ROOT}/scripts/pop-upload.sh" /tmp/popcorn-upload-config.json
+bash "${CLAUDE_PLUGIN_ROOT}/skills/pop/pop-upload.sh" /tmp/popcorn-upload-config.json
 ```
 
 The script outputs `{"ok": true, "size_bytes": ...}` on success or `{"ok": false, "error": "..."}` on stderr on failure.

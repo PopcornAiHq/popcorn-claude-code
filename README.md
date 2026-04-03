@@ -15,9 +15,8 @@ In Claude Code:
 
 ## What's Included
 
-- **popcorn** skill — always-on reference for Popcorn messaging. Detects CLI/MCP availability and guides setup.
-- `/popcorn:pop` — publish your project on Popcorn
-- `/popcorn:messages` — pull recent channel conversation into context
+- **popcorn** skill — always-on integration for Popcorn messaging. Sets up CLI + MCP, provides command routing and guardrails.
+- `/popcorn:pop` — publish your project to a Popcorn channel in one command.
 
 ## CLI vs MCP
 
@@ -26,22 +25,30 @@ This plugin works with either transport:
 | | CLI | MCP |
 |---|---|---|
 | Install | Auto-installed on first use | Auto-configured on first use |
-| Updates | Auto-updates itself (or `popcorn upgrade`) | N/A |
-| Features | Full (30+ commands) | Subset |
+| Updates | Auto-updates itself (or `popcorn upgrade`) | Server-side (transparent) |
+| Features | Full (30+ commands) | 7 tools (messaging, channels, deploy) |
 | Context usage | Minimal (runs in shell) | Higher (MCP tool calls) |
-| Recommended | Yes | Fallback |
+| Recommended | Yes — preferred for all operations | Always available for conversational features |
 
-The plugin will guide you through setup on first use.
+Both are installed on first use. The plugin prefers CLI when available and falls back to MCP tools.
 
 ## Development
 
 ### Testing the install flow
 
 ```bash
-./scripts/test-install.sh
+./dev/test-install.sh
 ```
 
-Launches Claude Code in an isolated environment (temp project + clean config dir) so you can test plugin installation without affecting your real setup. Follow the on-screen prompts to install and verify skills load correctly.
+Launches Claude Code in an isolated environment (temp project + clean config dir) so you can test plugin installation without affecting your real setup.
+
+### Version bumping
+
+```bash
+make bump v=X.Y.Z
+```
+
+Updates `plugin.json` and `marketplace.json`, commits, ready to push.
 
 ## License
 

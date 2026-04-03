@@ -1,1 +1,6 @@
 .worktrees/
+.claude/settings.local.json
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+.venv/
