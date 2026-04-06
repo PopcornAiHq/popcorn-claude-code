@@ -74,6 +74,24 @@ else
   fi
 fi
 
+# Step 4: Update check (skip if auto-update is enabled)
+PLUGIN_DIR="$HOME/.claude/plugins/marketplaces/popcorn"
+AUTO_UPDATE=$(python3 -c "
+import json, pathlib
+s = json.loads(pathlib.Path(pathlib.Path.home() / '.claude' / 'settings.json').read_text())
+print(s.get('extraKnownMarketplaces',{}).get('popcorn',{}).get('autoUpdate', False))
+" 2>/dev/null || echo "False")
+
+if [ "$AUTO_UPDATE" != "True" ]; then
+  LOCAL_V=$(python3 -c "import json; print(json.load(open('$PLUGIN_DIR/.claude-plugin/plugin.json'))['version'])" 2>/dev/null || echo "")
+  REMOTE_V=$(curl -sf --max-time 3 "https://raw.githubusercontent.com/PopcornAiHq/popcorn-claude-code/main/.claude-plugin/plugin.json" | python3 -c "import json,sys; print(json.load(sys.stdin)['version'])" 2>/dev/null || echo "")
+
+  if [ -n "$LOCAL_V" ] && [ -n "$REMOTE_V" ] && [ "$LOCAL_V" != "$REMOTE_V" ]; then
+    echo -e "${YELLOW}Update available: v${LOCAL_V} → v${REMOTE_V}${RESET}"
+    echo -e "${DIM}Enable auto-update: /plugin → Marketplaces → popcorn → Enable auto-update${RESET}"
+  fi
+fi
+
 # Summary
 echo ""
 if [ "$CLI" = true ] && [ "$AUTH" = true ] && [ "$MCP" = true ]; then
