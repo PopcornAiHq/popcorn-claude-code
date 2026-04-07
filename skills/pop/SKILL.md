@@ -7,7 +7,7 @@ userTriggered: true
 
 # /popcorn:pop — Publish to Popcorn
 
-Publish local project files to a Popcorn app channel. The workspace VM pulls the tarball, unpacks, commits, and serves the site.
+Publish local project files to a Popcorn app channel. The workspace VM pulls the tarball, unpacks, commits, and serves the site. Popcorn supports **all project types**: static sites, build-step sites (React, Vite, Next.js), and full-stack server apps (Node.js/Express, Python/Flask).
 
 This command should "just work" — handle setup, context generation, and error recovery automatically. The user should go from zero to a live site in one invocation.
 
