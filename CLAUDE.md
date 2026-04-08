@@ -10,8 +10,10 @@ popcorn-claude-code/
 │   ├── popcorn/
 │   │   ├── SKILL.md       ← Always-on: CLI + MCP routing, setup, guardrails
 │   │   └── setup.sh       ← Deterministic setup: CLI install, auth, MCP
-│   └── pop/
-│       └── SKILL.md       ← /popcorn:pop — deploy/publish site files (user-triggered)
+│   ├── pop/
+│   │   └── SKILL.md       ← /popcorn:pop — deploy/publish site files (user-triggered)
+│   └── messages/
+│       └── SKILL.md       ← /popcorn:messages — pull channel messages into context
 ├── .claude-plugin/
 │   ├── plugin.json         ← Plugin manifest
 │   └── marketplace.json    ← Marketplace listing
@@ -39,6 +41,11 @@ popcorn-claude-code/
 - Reads `.popcorn.local.json` (v2: multi-target, workspace-aware) for target resolution
 - CLI deploy path (preferred): `popcorn site deploy`
 - MCP deploy path (fallback): delegates to server-side `pop` prompt
+
+**/popcorn:messages** (slash command, user-triggered):
+- Pulls recent channel messages into context for iteration
+- Resolves channel from `.popcorn.local.json` or user input
+- CLI path (preferred) or MCP `read_messages` fallback
 
 ## Dependencies
 

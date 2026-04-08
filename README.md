@@ -17,6 +17,7 @@ In Claude Code:
 
 - **popcorn** skill — always-on integration for Popcorn messaging. Sets up CLI + MCP, provides command routing and guardrails.
 - `/popcorn:pop` — publish your project to a Popcorn channel in one command.
+- `/popcorn:messages` — pull recent channel messages into context for iteration.
 
 ## CLI vs MCP
 
