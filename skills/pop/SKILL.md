@@ -1,7 +1,7 @@
 ---
 name: pop
 description: Deploy/publish local project files to a Popcorn channel. USER-TRIGGERED ONLY — never invoke pre-emptively. For general deploy requests, use the CLI directly (popcorn site deploy).
-allowed-tools: Bash, mcp__popcorn__whoami, mcp__popcorn__get_channel, mcp__popcorn__update_channel, mcp__popcorn__search
+allowed-tools: Bash
 userTriggered: true
 ---
 
@@ -160,44 +160,11 @@ Read `site_name` and `version` from `.data` on success.
 
 ### MCP path (fallback — when CLI is unavailable)
 
-#### 6a. Verify auth
-```
-whoami → confirm user + workspace
-```
+Fetch the `pop` prompt from the Popcorn MCP server and follow its
+instructions entirely. The prompt contains the complete MCP deploy
+workflow including GitHub-based and S3-based deploy paths.
 
-#### 6b. Get channel + upload URL
-```
-get_channel(channel) → returns details, site status, presigned upload URL
-```
-
-If creating a new channel, call `update_channel(name="my-app")` first.
-
-#### 6c. Upload project files
-
-Write a config file with the upload parameters from `get_channel`, then run the upload script:
-
-```bash
-cat > /tmp/popcorn-upload-config.json << 'EOF'
-{
-  "upload_url": "<from get_channel response: upload.url>",
-  "upload_fields": { <from get_channel response: upload.fields> },
-  "project_dir": "/path/to/project"
-}
-EOF
-
-bash "${CLAUDE_PLUGIN_ROOT}/skills/pop/pop-upload.sh" /tmp/popcorn-upload-config.json
-```
-
-The script outputs `{"ok": true, "size_bytes": ...}` on success or `{"ok": false, "error": "..."}` on stderr on failure.
-
-#### 6d. Trigger deploy
-```
-update_channel(channel, s3_key="<from get_channel: upload.s3_key>", context="description of changes")
-```
-
-#### 6e. Persist state
-
-Update `.popcorn.local.json` so subsequent deploys resolve the target automatically. Read the existing file first (if any), then upsert:
+After a successful deploy, persist state to `.popcorn.local.json` so subsequent deploys resolve the target automatically. Read the existing file first (if any), then upsert:
 
 ```json
 {

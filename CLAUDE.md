@@ -11,8 +11,7 @@ popcorn-claude-code/
 │   │   ├── SKILL.md       ← Always-on: CLI + MCP routing, setup, guardrails
 │   │   └── setup.sh       ← Deterministic setup: CLI install, auth, MCP
 │   └── pop/
-│       ├── SKILL.md       ← /popcorn:pop — deploy/publish site files (user-triggered)
-│       └── pop-upload.sh  ← Tarball + S3 upload for MCP deploy path
+│       └── SKILL.md       ← /popcorn:pop — deploy/publish site files (user-triggered)
 ├── .claude-plugin/
 │   ├── plugin.json         ← Plugin manifest
 │   └── marketplace.json    ← Marketplace listing
@@ -39,7 +38,7 @@ popcorn-claude-code/
 - Publishes local project files to a Popcorn app channel via VM
 - Reads `.popcorn.local.json` (v2: multi-target, workspace-aware) for target resolution
 - CLI deploy path (preferred): `popcorn site deploy`
-- MCP deploy path (fallback): whoami → get_channel → pop-upload.sh → update_channel
+- MCP deploy path (fallback): delegates to server-side `pop` prompt
 
 ## Dependencies
 
