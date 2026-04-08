@@ -7,4 +7,5 @@ bump:  ## Bump version: make bump [v=X.Y.Z] (patch if omitted)
 	@sed -i '' 's/"version": "[^"]*"/"version": "$(v)"/' .claude-plugin/marketplace.json
 	@git add .claude-plugin/plugin.json .claude-plugin/marketplace.json
 	@git commit -m "chore: bump version to $(v)"
-	@echo "✓ Bumped to $(v). Push when ready: git push"
+	@git tag "v$(v)"
+	@echo "✓ Bumped to $(v) (tagged v$(v)). Push when ready: git push && git push --tags"
