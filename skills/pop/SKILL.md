@@ -13,6 +13,8 @@ This command should "just work" — handle setup, context generation, and error 
 
 ## Step 1: Ensure CLI is ready
 
+Run setup from the **plugin root** (not this skill's directory):
+
 ```bash
 bash "${CLAUDE_PLUGIN_ROOT}/skills/popcorn/setup.sh"
 ```

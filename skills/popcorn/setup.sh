@@ -39,7 +39,7 @@ else
   fi
 fi
 
-# Step 2: Auth (only if CLI available)
+# Step 2: Auth + workspace (only if CLI available)
 if [ "$CLI" = true ]; then
   # Refresh PATH in case CLI was just installed
   export PATH="$HOME/.local/bin:$PATH"
@@ -50,9 +50,35 @@ if [ "$CLI" = true ]; then
   else
     echo -e "${BOLD}Opening browser for Popcorn login...${RESET}"
     if popcorn auth login; then
-      AUTH=true
       CHANGED=true
-      echo -e "${GREEN}Auth: logged in${RESET}"
+
+      if popcorn whoami &>/dev/null; then
+        AUTH=true
+        echo -e "${GREEN}Auth: logged in${RESET}"
+      else
+        # Auth token is valid but current workspace is stale/invalid
+        echo -e "${YELLOW}Current workspace is invalid — checking available workspaces...${RESET}"
+        WS_LIST=$(popcorn workspace list 2>/dev/null || true)
+        WS_COUNT=$(echo "$WS_LIST" | grep -c 'id:' || true)
+
+        if [ "$WS_COUNT" -eq 1 ]; then
+          WS_ID=$(echo "$WS_LIST" | head -1 | sed 's/.*id: //' | tr -d ') ')
+          WS_NAME=$(echo "$WS_LIST" | head -1 | sed 's/ (id:.*//' | sed 's/^[[:space:]]*//')
+          echo -e "Switching to workspace: ${BOLD}${WS_NAME}${RESET}"
+          if popcorn workspace switch "$WS_ID" &>/dev/null && popcorn whoami &>/dev/null; then
+            AUTH=true
+            echo -e "${GREEN}Auth: switched to ${WS_NAME}${RESET}"
+          else
+            echo -e "Could not switch workspace. Run: popcorn workspace switch <id>"
+          fi
+        elif [ "$WS_COUNT" -gt 1 ]; then
+          echo -e "${YELLOW}Multiple workspaces available:${RESET}"
+          echo "$WS_LIST"
+          echo -e "Switch with: ${BOLD}popcorn workspace switch <id>${RESET}"
+        else
+          echo -e "No workspaces found. Check your Popcorn account."
+        fi
+      fi
     else
       echo -e "Auth: login failed — run manually: popcorn auth login"
     fi
