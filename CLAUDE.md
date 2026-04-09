@@ -12,8 +12,10 @@ popcorn-claude-code/
 │   │   └── setup.sh       ← Deterministic setup: CLI install, auth, MCP
 │   ├── pop/
 │   │   └── SKILL.md       ← /popcorn:pop — deploy/publish site files (user-triggered)
-│   └── messages/
-│       └── SKILL.md       ← /popcorn:messages — pull channel messages into context
+│   ├── messages/
+│   │   └── SKILL.md       ← /popcorn:messages — pull channel messages into context
+│   └── export/
+│       └── SKILL.md       ← /popcorn:export — export site files from channel into project
 ├── .claude-plugin/
 │   ├── plugin.json         ← Plugin manifest
 │   └── marketplace.json    ← Marketplace listing
@@ -46,6 +48,12 @@ popcorn-claude-code/
 - Pulls recent channel messages into context for iteration
 - Resolves channel from `.popcorn.local.json` or user input
 - CLI path (preferred) or MCP `read_messages` fallback
+
+**/popcorn:export** (slash command, user-triggered):
+- Exports site files from a Popcorn channel into the local project
+- Inverse of `/popcorn:pop` — downloads and extracts the deployed version
+- Backs up current files to `.popcorn-backup/`, supports `--revert`
+- CLI only (no MCP fallback)
 
 ## Dependencies
 
