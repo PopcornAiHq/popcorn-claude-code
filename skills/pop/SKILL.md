@@ -63,7 +63,7 @@ Try the default channel name:
 popcorn --json channel info '#pop-<directory-name>'
 ```
 
-If found → check for site metadata (same as substep 1 above). If the channel has no site, convert it first. Then ask: "Found existing channel #`<name>`. Deploy to this channel?"
+If found → ask: "Found existing channel #`<name>`. Deploy to this channel?"
 If not found → first deploy. Proceed normally.
 
 ## Step 3: Extract parameters
