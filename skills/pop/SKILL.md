@@ -37,7 +37,12 @@ A `#channel-name` or bare name with clear intent → look it up:
 popcorn --json channel info '#<channel-name>'
 ```
 
-- **Found** → use it, no confirmation needed.
+- **Found** → check if it has a provisioned site (the response `.data.metadata` will contain `site_name`, `site_url`, `subdomain` if a site exists). If the channel exists but has **no site metadata**, convert it before deploying:
+  ```bash
+  popcorn --json api /api/conversations/update -X POST \
+    --data '{"conversation": "<conversation_id>", "conversation_type": "workspace_channel", "site_name": "<channel_name>"}'
+  ```
+  Then proceed with the deploy using `--target`.
 - **Not found** → proceed as a new deploy using the channel name as `--name`.
 
 ### 2. Check `.popcorn.local.json` for existing targets
@@ -63,7 +68,7 @@ Try the default channel name:
 popcorn --json channel info '#pop-<directory-name>'
 ```
 
-If found → ask: "Found existing channel #`<name>`. Deploy to this channel?"
+If found → check for site metadata (same as substep 1 above). If the channel has no site, convert it first. Then ask: "Found existing channel #`<name>`. Deploy to this channel?"
 If not found → first deploy. Proceed normally.
 
 ## Step 3: Extract parameters
@@ -203,4 +208,6 @@ If the deploy fails, don't just report the error — try to recover:
 | VM error (build/deploy failure) | Report the `vm_error` details from the response. These are usually code issues (missing dependencies, build errors) — show the user the error so they can fix their code |
 | Network timeout | Retry once with `--timeout 120`. If it fails again, report the timeout |
 | 409 conflict (name taken) | The CLI auto-retries with a suffix. If it still fails, suggest the user provide a different `--name` |
+| `already_exists` (channel exists but has no site) | The channel exists as a regular channel without a provisioned site. Convert it: `popcorn --json api /api/conversations/update -X POST --data '{"conversation": "<conversation_id>", "conversation_type": "workspace_channel", "site_name": "<channel_name>"}'` — then retry the deploy with `--target` |
+| `no_site` ("Conversation does not have a provisioned site") | The target channel has no provisioned site. Same fix: convert via the conversations update API (see `already_exists` recovery above), then retry |
 | Unknown error | Report the full error JSON so the user can debug |
