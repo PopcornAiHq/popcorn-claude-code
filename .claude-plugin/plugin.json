@@ -1,7 +1,7 @@
 {
   "name": "popcorn",
   "description": "Popcorn messaging integration for Claude Code",
-  "version": "0.10.5",
+  "version": "0.11.0",
   "author": {
     "name": "Popcorn",
     "email": "support@popcorn.ai"
