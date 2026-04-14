@@ -48,7 +48,12 @@ The CLI auto-updates. To upgrade manually: `popcorn upgrade`.
 1. **Always quote `'#channel-name'`** in bash — unquoted `#` triggers shell glob expansion. To find channels by name, use `channel list`.
 2. **Use `message list` to read messages from a channel**, never `workspace inbox`.
 3. **Confirm before sending.** Always show the user exactly what will be sent and get confirmation before calling `message send` or `post_message`.
-4. **Use `--json` for parsing** — all CLI JSON output uses an envelope: `{"ok": true, "data": ...}` on success, `{"ok": false, "error": ...}` on stderr for errors. Parse `.data` from success responses.
+4. **Agent mode:** Prefix all CLI commands with `POPCORN_AGENT=1`. This auto-injects `--json`, `--quiet`, and `--no-color`, and suppresses upgrade prompts. You never need to pass `--json` manually.
+   ```bash
+   POPCORN_AGENT=1 popcorn site deploy --context "..."
+   POPCORN_AGENT=1 popcorn channel info '#my-channel'
+   ```
+5. **JSON envelope** — all CLI JSON output uses an envelope: `{"ok": true, "data": ...}` on success, `{"ok": false, "error": ...}` on stderr for errors. Parse `.data` from success responses.
 
 ### Message Structure
 

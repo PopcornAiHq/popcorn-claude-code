@@ -76,7 +76,7 @@ If no uncommitted changes or not a git repo, proceed normally.
 ## Step 5: Export
 
 ```bash
-popcorn --json site export '#<channel-name>' [--version VERSION] --force
+POPCORN_AGENT=1 popcorn site export '#<channel-name>' [--version VERSION] --force
 ```
 
 **Parse the response envelope:**

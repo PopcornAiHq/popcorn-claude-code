@@ -32,7 +32,7 @@ Tell the user: "No linked channel found. Provide a channel name (e.g. `#my-app`)
 ### CLI path (preferred)
 
 ```bash
-popcorn --json message list '#<channel-name>' --limit 25
+POPCORN_AGENT=1 popcorn message list '#<channel-name>' --limit 25
 ```
 
 Parse the response envelope — messages are in `.data`. If the CLI is not installed or auth fails, run setup first:
