@@ -30,17 +30,17 @@ Same resolution logic as `/popcorn:pop`:
 
 A `#channel-name` or bare name after `/export` → use it directly.
 
-### 2. Check `.popcorn.local.json`
+### 2. Check for existing deploy targets
 
 ```bash
-cat .popcorn.local.json 2>/dev/null
+POPCORN_AGENT=1 popcorn site targets
 ```
 
-If the file exists and has a `default_target`, use it. Tell the user: "Exporting from #`<site_name>`."
+If there's a `default` target, use it. Tell the user: "Exporting from #`<site_name>`."
 
-If multiple targets exist, list them and ask which one.
+If multiple targets, list them and ask which one.
 
-### 3. No file, no target
+### 3. No targets found
 
 Tell the user: "No linked channel found. Provide a channel name (e.g. `#my-app`), or run `/popcorn:pop` first to link a channel."
 

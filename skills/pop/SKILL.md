@@ -40,44 +40,21 @@ POPCORN_AGENT=1 popcorn channel info '#<channel-name>'
 - **Found** → use it, no confirmation needed.
 - **Not found** → proceed as a new deploy using the channel name as the positional `name` argument.
 
-### 2. Check `.popcorn.local.json` for existing targets
-
-The CLI maintains a v2 local state file with deploy targets:
+### 2. Check for existing deploy targets
 
 ```bash
-cat .popcorn.local.json 2>/dev/null
+POPCORN_AGENT=1 popcorn site targets
 ```
 
-Example file structure:
+Response: `{"ok": true, "data": {"targets": [...], "default": "target-name"}}`.
 
-```json
-{
-  "version": 2,
-  "default_target": "how-to-popcorn4b63d5e9",
-  "targets": {
-    "how-to-popcorn4b63d5e9": {
-      "workspace_id": "a4b7d5e9-df56-4a7d-8237-18cfcd3429c4",
-      "workspace_name": "Camino",
-      "conversation_id": "...",
-      "site_name": "how-to-popcorn",
-      "deployed_at": "2026-04-11T..."
-    }
-  }
-}
-```
+Each target has: `name` (the `--target` flag value), `site_name`, `workspace_id`, `workspace_name`.
 
-**Key values for Step 6 (deploy):**
-- The **target key** (e.g. `how-to-popcorn4b63d5e9`) → becomes `--target` flag value
-- The **workspace_id** (UUID) → becomes `--workspace` flag value if needed
-
-If the file exists and has targets:
-- **Single target matching current workspace** → tell the user: "Last deploy went to #`<name>`. Deploy there again?" If they confirm, proceed. If they decline, proceed as a fresh deploy.
+- **Single target** → tell the user: "Last deploy went to #`<site_name>`. Deploy there again?" If they confirm, use `--target <name>`. If they decline, proceed as a fresh deploy.
 - **Multiple targets** → list them and ask: "You have deploy targets: `<a>` (workspace X), `<b>` (workspace Y). Which one, or create a new one?"
-- **Targets exist but none match current workspace** → "This project has deploys in other workspaces. Deploy as a new target in `<current workspace>`?"
+- **No targets** → first deploy. Proceed normally.
 
-Agent memory is supplementary — use it for change context (commit hashes, what changed) but rely on the file for target resolution.
-
-### 3. No file, no target specified
+### 3. No targets, no user input
 
 Try the default channel name:
 
@@ -99,12 +76,12 @@ From the user's free-form text (everything after `/pop`), infer:
 The user may provide any combination in natural phrasing. Examples:
 
 ```
-/popcorn:pop                                     → defaults for both
-/popcorn:pop my-app                              → --name my-app (new deploy)
-/popcorn:pop added dark mode                     → --context "Added dark mode"
-/popcorn:pop deploy my-app with the new sidebar  → --name my-app --context "New sidebar"
+/popcorn:pop                                     → defaults for everything
+/popcorn:pop my-app                              → site name "my-app" (new deploy)
+/popcorn:pop added dark mode                     → context "Added dark mode"
+/popcorn:pop deploy my-app with the new sidebar  → site name "my-app", context "New sidebar"
 /popcorn:pop #my-channel                         → target existing #my-channel
-/popcorn:pop #my-channel added dark mode         → target #my-channel, --context "Added dark mode"
+/popcorn:pop #my-channel added dark mode         → target #my-channel, context "Added dark mode"
 ```
 
 Don't be rigid — interpret intent. When ambiguous between name and context, prefer context (more useful). When ambiguous between name and target channel, prefer target channel if the token has a `#` prefix.
@@ -121,46 +98,10 @@ If it is a git repo, ensure all work is committed and up to date before deployin
 
 This ensures the deployed version includes the latest work.
 
-## Step 5: Auto-generate context
+## Step 5: Resolve context
 
-If the user already provided context text, use it as-is for `--context`. Skip this step.
-
-If no context was provided, generate one automatically.
-
-### Git repos
-
-**Read the deploy baseline:** If deploying to an existing channel (resolved in Step 2), fetch the last deployed commit hash from the server:
-
-```bash
-POPCORN_AGENT=1 popcorn site status '<channel-name>'
-```
-
-Parse `.data.commit_hash` from the response — this is the baseline for diffing.
-
-**Gather changes:**
-
-```bash
-# If commit_hash baseline exists (subsequent deploy):
-git log --oneline <commit_hash>..HEAD
-git diff --name-only <commit_hash> HEAD
-
-# If no baseline (first deploy) or status failed:
-git log --oneline -5
-```
-
-**No changes detected?** If git log and diff return empty since the last deploy's `commit_hash`, tell the user: "No local changes detected since the last deploy. Do you still want to redeploy?" If they decline, stop. If they confirm, proceed with a context like "Redeploy without local changes".
-
-**Summarize** into a short one-liner (same quality bar as a good commit message):
-- Describe the **intent**, not just file names
-- Good: "Add dark mode toggle, update footer styling"
-- Bad: "Updated index.html and styles.css"
-- Bad: "Various changes"
-
-### Non-git projects
-
-No change detection is available. Use a generic context:
-- First deploy (no deploy history in memory): "Initial deploy"
-- Subsequent deploys: "Update deploy" (or ask the user what changed)
+- **User provided context** → use `--context "their text"`
+- **No context provided** → use `--context-from-git` (the CLI auto-generates context from git commits since last deploy, or falls back to "Initial deploy" for non-git/first deploys)
 
 ## Step 6: Deploy
 
@@ -168,47 +109,35 @@ No change detection is available. Use a generic context:
 
 All commands use agent mode (`POPCORN_AGENT=1`) which auto-injects `--json`, `--quiet`, `--no-color`. Never pass `--json` manually.
 
-The only global flag you may need is `--workspace <UUID>`, which must go **before** the subcommand:
-
-```
-POPCORN_AGENT=1 popcorn [--workspace UUID] site deploy [flags]
-```
-
 **New deploy** (first time, no existing target):
 
 ```bash
-# Defaults to channel name pop-<directory>:
-POPCORN_AGENT=1 popcorn site deploy --context "Initial deploy with homepage and styles"
-
-# Set a custom channel name (positional argument):
-POPCORN_AGENT=1 popcorn site deploy my-app --context "Initial deploy"
+POPCORN_AGENT=1 popcorn site deploy --context-from-git
+# With a custom channel name:
+POPCORN_AGENT=1 popcorn site deploy my-app --context-from-git
 ```
 
-**Existing deploy** (target found in `.popcorn.local.json`):
+**Existing deploy** (target from `site targets`):
 
 ```bash
-# --target value = the target KEY from .popcorn.local.json "targets" object
-POPCORN_AGENT=1 popcorn site deploy --target <target-key> --context "Add dark mode toggle"
+# --target value = the "name" field from site targets output
+POPCORN_AGENT=1 popcorn site deploy --target <name> --context-from-git
 ```
 
-**With workspace** (when `.popcorn.local.json` target has a `workspace_id` that differs from the CLI's current workspace):
+**With explicit context** (user described what changed):
 
 ```bash
-# --workspace takes a UUID, NOT a slug/name. Get it from .popcorn.local.json "workspace_id".
-POPCORN_AGENT=1 popcorn --workspace <workspace-UUID> site deploy --target <target-key> --context "Fix mobile layout"
+POPCORN_AGENT=1 popcorn site deploy --target <name> --context "Add dark mode toggle"
 ```
 
-**Common mistakes to avoid:**
-- `--workspace camino` — wrong, needs UUID like `a4b7d5e9-df56-4a7d-8237-...`
-- `popcorn site deploy --workspace <UUID>` — wrong, `--workspace` is a global flag, must go before `site deploy`
-- Omitting `--target` for existing deploys — without it, the CLI creates a new channel
-- Passing `--json` manually — agent mode handles this, don't double it
+**With workspace override** (target's workspace differs from current):
 
-When in doubt, check usage: `popcorn site deploy --help`
+```bash
+# --workspace accepts name or UUID
+POPCORN_AGENT=1 popcorn --workspace Camino site deploy --target <name> --context-from-git
+```
 
-The CLI handles: tarball creation, S3 upload, and VM deploy.
-
-The CLI writes `.popcorn.local.json` automatically (v2 format with workspace-aware targets). The agent should read this file for target resolution (Step 2) but does not need to write it when using the CLI path.
+The CLI handles: tarball creation, S3 upload, and VM deploy. It writes `.popcorn.local.json` automatically after deploy.
 
 **Parse the response envelope:**
 - Success: `{"ok": true, "data": {"conversation_id":"...","site_name":"...","version":3,"commit_hash":"...","subdomain":"...","site_url":"..."}}`
@@ -248,6 +177,11 @@ After a successful deploy, persist state to `.popcorn.local.json` so subsequent 
 
 - **Success:** "Published to #`<site_name>` (v`<version>`) — `<site_url>`" where `site_url` is from the deploy response `.data.site_url` (e.g. `https://pop-test--my-ws.popcorn.ing`)
 - **First deploy:** mention the new site was created
+- **Build in progress?** If the deploy response includes a `verify_task_id` or the site isn't ready yet, you can stream build progress:
+  ```bash
+  POPCORN_AGENT=1 popcorn site trace '#<site_name>' --watch
+  ```
+  Each NDJSON line is a build/deploy step. Report progress: "Building..." → "Installing deps..." → "Live."
 - **Unpushed commits?** If Step 4 noted unpushed commits, remind the user and offer to push: "You have unpushed commits on `<branch>`. Want me to push?"
 - **Failure:** see error recovery below
 
@@ -257,7 +191,7 @@ If the deploy fails, don't just report the error — try to recover:
 
 | Error | Recovery |
 |-------|----------|
-| Workspace mismatch ("belongs to workspace X") | The target's `workspace_id` differs from the CLI's current workspace. Re-run with `--workspace <UUID>` from `.popcorn.local.json` placed **before** `site deploy` |
+| Workspace mismatch ("belongs to workspace X") | The error message includes a `--workspace` suggestion. Re-run with `--workspace <name-or-id>` before `site deploy` |
 | Stale channel config | The CLI auto-recreates the channel. If it still fails, retry with a fresh name |
 | VM error (build/deploy failure) | Report the `vm_error` details from the response. These are usually code issues (missing dependencies, build errors) — show the user the error so they can fix their code |
 | Network timeout | Retry once with `--timeout 120`. If it fails again, report the timeout |

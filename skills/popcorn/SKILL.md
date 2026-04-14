@@ -21,6 +21,8 @@ The last line of output is JSON: `{"cli":true/false,"auth":true/false,"mcp":true
 
 If any component is still `false` after the script runs, tell the user what failed and how to fix it manually. If MCP was just added, tell the user to restart Claude Code.
 
+**Troubleshooting:** If setup passes but operations fail, run `POPCORN_AGENT=1 popcorn doctor` for structured diagnostics. Check `.data.issues[]` — empty means healthy. Issues include auth token expiry, workspace state, API reachability, and config permissions.
+
 **Skip this** if the user isn't doing a Popcorn action, or if `/popcorn:pop` is handling the request (it runs setup itself).
 
 ## Routing
@@ -46,7 +48,7 @@ The CLI auto-updates. To upgrade manually: `popcorn upgrade`.
 ### Rules
 
 1. **Always quote `'#channel-name'`** in bash — unquoted `#` triggers shell glob expansion. To find channels by name, use `channel list`.
-2. **Use `message list` to read messages from a channel**, never `workspace inbox`.
+2. **Use `message list` to read channel messages**, not `workspace inbox`. Use `workspace inbox --unread` only for triaging unread notifications across all channels.
 3. **Confirm before sending.** Always show the user exactly what will be sent and get confirmation before calling `message send` or `post_message`.
 4. **Agent mode:** Prefix all CLI commands with `POPCORN_AGENT=1`. This auto-injects `--json`, `--quiet`, and `--no-color`, and suppresses upgrade prompts. You never need to pass `--json` manually.
    ```bash

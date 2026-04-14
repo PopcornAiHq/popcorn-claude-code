@@ -15,15 +15,15 @@ Loads recent messages from a Popcorn channel into the current session so the dev
 
 If the user provided a `#channel-name` or bare name after `/messages`, use it directly.
 
-### Check `.popcorn.local.json`
+### Check for existing deploy targets
 
 ```bash
-cat .popcorn.local.json 2>/dev/null
+POPCORN_AGENT=1 popcorn site targets
 ```
 
-If the file exists, use the `default_target` to find the channel's `site_name`. Tell the user: "Reading messages from #`<site_name>`."
+If there's a `default` target, use its `site_name`. Tell the user: "Reading messages from #`<site_name>`."
 
-### No file, no target
+### No targets found
 
 Tell the user: "No linked channel found. Provide a channel name (e.g. `#my-app`), or run `/popcorn:pop` first to publish this project."
 
@@ -31,11 +31,32 @@ Tell the user: "No linked channel found. Provide a channel name (e.g. `#my-app`)
 
 ### CLI path (preferred)
 
+**Recent messages:**
+
 ```bash
 POPCORN_AGENT=1 popcorn message list '#<channel-name>' --limit 25
 ```
 
-Parse the response envelope — messages are in `.data`. If the CLI is not installed or auth fails, run setup first:
+**Targeted search** (when looking for specific feedback):
+
+```bash
+POPCORN_AGENT=1 popcorn message search 'login button' --limit 10
+```
+
+Use search when the user asks about a specific topic — it's more useful than reading the last 25 messages.
+
+**Pagination:** Check `.data.pagination.next` in the response. If non-null, it contains flags for the next page:
+
+```bash
+# First page:
+POPCORN_AGENT=1 popcorn message list '#<channel-name>' --limit 25
+# If .data.pagination.next is {"before": "msg-abc-123"}:
+POPCORN_AGENT=1 popcorn message list '#<channel-name>' --limit 25 --before msg-abc-123
+```
+
+Offer to load more when pagination indicates additional messages.
+
+Parse the response envelope — messages are in `.data.messages`. If the CLI is not installed or auth fails, run setup first:
 
 ```bash
 bash "${CLAUDE_PLUGIN_ROOT}/skills/popcorn/setup.sh"
@@ -51,7 +72,7 @@ If the CLI is unavailable, use the MCP tool:
 read_messages(conversation_id="<conversation_id>", limit=25)
 ```
 
-The `conversation_id` comes from `.popcorn.local.json` or from resolving the channel name via `get_channel`.
+The `conversation_id` comes from `site targets` output or from resolving the channel name via `get_channel`.
 
 ## Step 3: Present to the developer
 
