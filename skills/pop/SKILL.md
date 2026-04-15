@@ -144,7 +144,7 @@ If the deploy fails, don't just report the error — try to recover:
 | Error | Recovery |
 |-------|----------|
 | Not logged in (exit code 2) | Run `bash "${CLAUDE_PLUGIN_ROOT}/skills/popcorn/setup.sh"` to authenticate, then retry |
-| Ambiguous targets ("Multiple deploy targets found") | Call `POPCORN_AGENT=1 popcorn site targets` to list them. Ask the user which one, then retry with `--target <name>`. If you cannot prompt the user (non-interactive mode), pick the first target and retry with `--target <name>` |
+| Ambiguous targets ("Multiple deploy targets found") | Call `POPCORN_AGENT=1 popcorn site targets` to list them, then **pick the first target and retry with `--target <name>`** — don't block asking the user. Note which target you picked in your success report so they can redirect if needed |
 | Workspace mismatch ("belongs to workspace X") | The error message includes a `--workspace` suggestion. Re-run with `--workspace <name-or-id>` before `site deploy` |
 | Target not found | The explicit `--target` name doesn't exist. Call `site targets` to list available targets |
 | Stale channel config | The CLI auto-recreates the channel in non-interactive mode. If it still fails, retry with a fresh name |
