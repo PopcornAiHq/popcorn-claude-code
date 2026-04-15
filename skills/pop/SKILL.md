@@ -151,4 +151,5 @@ If the deploy fails, don't just report the error — try to recover:
 | VM error (build/deploy failure) | Report the `vm_error` details from the response. These are usually code issues (missing dependencies, build errors) — show the user the error so they can fix their code |
 | Network timeout | Retry once with `--timeout 120`. If it fails again, report the timeout |
 | 409 conflict (name taken) | The CLI auto-retries with a suffix. If it still fails, suggest the user provide a different name |
+| Ghost channel conflict (`error_code: "conflict"`, "exists but isn't accessible") | The name is taken by a channel in the workspace that you don't have access to. Suggest a different name to the user, or retry with a suffix (`<name>-2`) |
 | Unknown error | Report the full error JSON so the user can debug |
