@@ -101,6 +101,7 @@ is a hard failure.
 | `$inputs.<object>.field` is statically unreachable | Get a typed shape first via `agent.transform` + `output_schema` |
 | Arrays index with dots | `$steps.x.output.ids.0`, never `ids[0]` |
 | No `on_error` means up to 4 attempts | Non-idempotent steps need `retry: 0` |
+| A missing key is a hard `ReferenceError`, and `on_error` **cannot** rescue it — resolution precedes invocation | Guarantee presence upstream: `required` in an `output_schema`, or `$exists: true` in the query that produced the rows |
 
 ### When you use `agent.transform`
 
@@ -137,15 +138,16 @@ inventing a row, an optional field going missing, a write to an undeclared
 column. Always exercise the flow and read a row back.
 
 ```bash
-popcorn flow run <flow-uuid> --channel <id> --inputs '{"conversation_id":"<id>"}' --wait
+popcorn flow run <flow-name-or-uuid> --channel <id> --wait
 popcorn flow runs list --channel <id>
 popcorn flow runs get <workflow-id> --channel <id> --include-errors
 popcorn table rows <table> --channel <id>
 popcorn table schema <table> --channel <id>
 ```
 
-Note: `flow run` takes a flow **UUID**, not a name, and does not auto-supply
-`conversation_id`.
+Note: `flow run` accepts a name or a UUID and defaults `conversation_id` from
+`--channel` (popcorn-cli >= 0.16.0). Pass `--inputs` only for the flow's own
+arguments; an explicit `conversation_id` there still wins.
 
 For webhook-fed bundles:
 
@@ -162,8 +164,7 @@ keeping the identity fields.
 
 Work from evidence, in this order:
 
-1. `flow runs list --channel <id>` — find the failed run. (`--status failed`
-   does not match; Temporal's casing is `Failed`. Filter by eye.)
+1. `flow runs list --channel <id> --status failed` — find the failed run.
 2. `flow runs get <wid> --include-errors` — shows the terminal failure with
    its cause chain and each activity failure. It names the **activity**, not
    the DSL step id; the step id is not exposed by the API.
