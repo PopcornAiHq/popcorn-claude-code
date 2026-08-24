@@ -14,8 +14,10 @@ popcorn-claude-code/
 │   │   └── SKILL.md       ← /popcorn:pop — deploy/publish site files (user-triggered)
 │   ├── messages/
 │   │   └── SKILL.md       ← /popcorn:messages — pull channel messages into context
-│   └── export/
-│       └── SKILL.md       ← /popcorn:export — export site files from channel into project
+│   ├── export/
+│   │   └── SKILL.md       ← /popcorn:export — export site files from channel into project
+│   └── template/
+│       └── SKILL.md       ← /popcorn:template — author a channel-template bundle
 ├── .claude-plugin/
 │   ├── plugin.json         ← Plugin manifest
 │   └── marketplace.json    ← Marketplace listing
