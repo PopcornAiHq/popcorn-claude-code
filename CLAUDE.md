@@ -57,6 +57,16 @@ popcorn-claude-code/
 - Backs up current files to `.popcorn-backup/`, supports `--revert`
 - CLI only (no MCP fallback)
 
+**/popcorn:template** (slash command, user-triggered):
+- Authors a channel-template bundle: manifest (tables/schedules/webhooks) plus
+  one YAML file per flow
+- Drives the `app fork` → `checkout` → edit → `template check` → `app publish`
+  loop, which needs no backend deploy
+- **Scope is editing an app that already exists.** Creating a new `app_type`
+  needs a backend PR into `CHANNEL_TEMPLATES`; the skill hands that back rather
+  than improvising a bundle nobody can install
+- CLI only — the MCP path cannot publish bundles. Requires popcorn-cli ≥ 0.20.0
+
 ## Dependencies
 
 This plugin has no code dependencies. It provides skills that guide the agent to use either:
