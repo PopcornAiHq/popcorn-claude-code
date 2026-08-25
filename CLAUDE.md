@@ -83,16 +83,37 @@ This plugin has no code dependencies. It provides skills that guide the agent to
 
 ### Workflow
 
-1. Commit your changes first (do NOT include version bump in the same commit)
-2. Run `make bump v=X.Y.Z` — this creates a separate version bump commit
-3. `git push`
+Which workflow applies depends on how the change reaches `main`.
 
-```bash
-make bump v=X.Y.Z    # updates both files, stages, commits
-```
+**Direct push to `main`** — the bump is its own commit, and `make bump` does it:
 
-A pre-commit hook warns if source files are staged without a version bump.
+1. Commit your changes first (do NOT include the version bump in the same commit).
+   The pre-commit hook will warn that the version wasn't bumped — that's the
+   reminder working, not an error. It warns; it never blocks.
+2. `make bump v=X.Y.Z` — rewrites both files, commits `chore: bump version to
+   X.Y.Z`, and tags `vX.Y.Z`
+3. `git push && git push --tags`
+
+**Via a pull request** — the bump rides in the same commit as the change, and
+`make bump` is the wrong tool. This repo squash-merges, so a separate bump
+commit gets collapsed into the feature commit regardless, and `make bump`'s tag
+would be left pointing at a pre-squash commit that never lands on `main`.
+Instead:
+
+1. Edit `"version"` in both `.claude-plugin/plugin.json` and
+   `.claude-plugin/marketplace.json` by hand, and stage them alongside your
+   change. Staged together, the pre-commit hook is satisfied — it compares the
+   staged source set against the staged version files, not commit counts.
+2. After the squash lands on `main`, tag it for history:
+   `git tag vX.Y.Z && git push --tags`
 
 ## Releasing
 
-After bumping: `git push`.
+**What ships is `main`, not the tag.** `marketplace.json` declares
+`"source": "./"`, so the plugin resolves from this repo at its default branch —
+the `version` fields in the two `.claude-plugin/*.json` files on `main` are the
+release. Tags are a human-readable history marker; a missing tag doesn't block
+a release, and a tag alone doesn't make one.
+
+The failure that actually bites is the two files drifting out of sync, since
+each is bumped separately.
