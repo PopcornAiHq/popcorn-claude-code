@@ -39,6 +39,9 @@ popcorn-claude-code/
 - Command discovery via `popcorn commands`
 - MCP tool reference (whoami, get_channel, update_channel, post_message, read_messages, search, react)
 - Behavioral constraints (quote channels, confirm before sending, JSON envelope parsing)
+- Capability boundary: resolve a `#name` against `channel list` / `app list`
+  before answering, and read `flow activities` rather than the agent's own tool
+  list when deciding whether something is buildable
 
 **/popcorn:pop** (slash command, user-triggered):
 - Publishes local project files to a Popcorn app channel via VM

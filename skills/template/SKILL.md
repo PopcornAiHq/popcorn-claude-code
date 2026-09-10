@@ -50,7 +50,7 @@ Two paths, and picking the wrong one wastes the session.
 what the user wants, and it needs no deploy:
 
 ```bash
-popcorn app list --channel '#chan'      # what does this channel run?
+popcorn app list --channel '#chan'      # .data.channel = what THIS channel runs
 popcorn app fork --channel '#chan'      # this workspace's own fork line
 popcorn app checkout --channel '#chan'  # the bound version, as editable files
 # ... edit, and BUMP version: in manifest.yaml
@@ -77,6 +77,11 @@ Three things to state out loud before publishing:
   on the same fork line catches up on its own nightly auto-update tick.
 - **One fork line per (workspace, app)** — no parallel experiments without
   `app fork --name <line>`.
+
+`.data.channel` is the binding — `null` means the channel runs no bundle at
+all, and nothing to fork. `.data.apps` beside it is every app available to the
+workspace's release track, which is not the same question and is a long list
+either way.
 
 If an app the user says exists is missing from `app list`, suspect **release
 tracks** before anything else: the list is filtered to the workspace's track
@@ -105,15 +110,29 @@ Ask what the template should do if it is not clear — what state it holds, what
 triggers it (webhook / schedule / agent / message), what it posts.
 
 Then **read the authoring guide before writing YAML**. If the user has
-popcorn-cli checked out it is at `docs/TEMPLATE_AUTHORING.md`; otherwise fetch
-it:
+popcorn-cli checked out it is at `docs/TEMPLATE_AUTHORING.md`. Otherwise fetch
+the **raw** URL — the `blob/` one serves rendered HTML, and a fetch of it comes
+back summarised rather than complete:
 
 ```
-https://github.com/PopcornAiHq/popcorn-cli/blob/main/docs/TEMPLATE_AUTHORING.md
+https://raw.githubusercontent.com/PopcornAiHq/popcorn-cli/main/docs/TEMPLATE_AUTHORING.md
 ```
 
-The complete worked example is `examples/alerttracker/` in the same repo. Copy
-its shape rather than inventing one.
+**There is no bundle in the repo to copy.** `examples/` holds fixtures and a
+findings log, not bundle source — the two bundles that used to live there moved
+to `tests/fixtures/bundles/` as checker inputs, and neither was ever safe to
+copy (no `version:`, and both drifted from what the platform ships). Do not go
+looking for `examples/<app>/manifest.yaml`; it does not exist.
+
+**The worked example is the checkout.** `popcorn app checkout` hands you the
+real, complete, currently-deployed bundle for the channel in front of you,
+comments and all. Read that. It is more current than any file in any repo, and
+you need it checked out anyway before you can edit it — so start there rather
+than hunting for a reference copy first.
+
+Worth reading once if you have the repo, because no command produces it:
+`examples/alerttracker/GOTCHAS.md`, a log of what actually broke when that
+bundle ran against live traffic.
 
 ## Step 2: Scaffold, or check out what exists
 

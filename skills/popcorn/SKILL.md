@@ -41,6 +41,43 @@ Run `popcorn <command> --help` or `popcorn commands` for CLI discovery.
 | Terminal + no CLI      | Pop skill        | MCP deploy via pop skill |
 | Non-terminal (Cowork)  | Pop skill        | MCP deploy via pop skill |
 
+## Before you tell the user something is impossible
+
+Two ways this goes wrong, both from answering without looking.
+
+**A `#name` in a request is probably a Popcorn channel.** Not Slack, not
+decoration. Resolve it before concluding anything about it:
+
+```bash
+POPCORN_AGENT=1 popcorn channel list '<name>'          # does it exist?
+POPCORN_AGENT=1 popcorn app list --channel '#<name>'   # does it run an app bundle?
+```
+
+Read **`.data.channel`** from that second one — it is what this channel runs,
+and `null` means it runs no bundle. Do not read `.data.apps` for this: that is
+every app available to the workspace's release track, so it is a long list even
+for a channel bound to nothing.
+
+A channel running an app bundle has tables, flows, schedules and webhooks you
+can read and change. The loop is `popcorn app fork` → `app checkout` → edit →
+`popcorn template check` → `app publish`, and it needs no deploy. Use those
+commands directly when the user asks for a change to what a channel does;
+`/popcorn:template` covers the same ground in more depth but is user-triggered,
+so never invoke or suggest it.
+
+**Popcorn's catalog decides what is buildable — your own tool list does not.**
+
+```bash
+POPCORN_AGENT=1 popcorn flow activities --tier foundation
+```
+
+"I have no tool for X" and "Popcorn cannot do X" are different claims, and
+reporting the first as the second is wrong in both directions: it refuses work
+the platform supports, and it presents a guess about your harness as a platform
+limit. Check the catalog, then answer from it — and if the capability genuinely
+is not there, say which one is missing and name Popcorn as the thing that lacks
+it, so the user can tell a real gap from a temporary one.
+
 ## CLI
 
 The CLI auto-updates. To upgrade manually: `popcorn upgrade`.
