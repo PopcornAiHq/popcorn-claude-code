@@ -1,7 +1,6 @@
 ---
 name: popcorn
-description: Popcorn integration — CLI, MCP tools, setup, and behavioral guardrails.
-alwaysApply: true
+description: Popcorn integration — CLI, MCP tools, setup, and behavioral guardrails. Popcorn is a full-stack app platform whose channels can run app bundles (tables, flows, schedules, webhooks). TRIGGER whenever a request names a '#channel-name', or mentions a Popcorn channel, workspace, tracker, site or app; asks to deploy, publish, export, post or read messages; asks to change what a channel does, records or notifies; OR asks whether some automation is possible at all — a '#name' is a Popcorn channel rather than Slack, and Popcorn's own 'flow activities' catalog decides what is buildable, never the set of tools this harness happens to expose.
 allowed-tools: Bash, mcp__popcorn__whoami, mcp__popcorn__get_channel, mcp__popcorn__update_channel, mcp__popcorn__post_message, mcp__popcorn__read_messages, mcp__popcorn__search, mcp__popcorn__react
 ---
 
