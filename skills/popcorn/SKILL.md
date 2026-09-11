@@ -1,7 +1,6 @@
 ---
 name: popcorn
-description: Popcorn integration — CLI, MCP tools, setup, and behavioral guardrails.
-alwaysApply: true
+description: Popcorn integration — CLI, MCP tools, setup, and behavioral guardrails. Popcorn is a full-stack app platform whose channels can run app bundles (tables, flows, schedules, webhooks). TRIGGER whenever a request names a '#channel-name', or mentions a Popcorn channel, workspace, tracker, site or app; asks to deploy, publish, export, post or read messages; asks to change what a channel does, records or notifies; OR asks whether some automation is possible at all — a '#name' is a Popcorn channel rather than Slack, and Popcorn's own 'flow activities' catalog decides what is buildable, never the set of tools this harness happens to expose.
 allowed-tools: Bash, mcp__popcorn__whoami, mcp__popcorn__get_channel, mcp__popcorn__update_channel, mcp__popcorn__post_message, mcp__popcorn__read_messages, mcp__popcorn__search, mcp__popcorn__react
 ---
 
@@ -40,6 +39,43 @@ Run `popcorn <command> --help` or `popcorn commands` for CLI discovery.
 | Terminal + CLI         | Pop skill        | `popcorn site deploy` via CLI |
 | Terminal + no CLI      | Pop skill        | MCP deploy via pop skill |
 | Non-terminal (Cowork)  | Pop skill        | MCP deploy via pop skill |
+
+## Before you tell the user something is impossible
+
+Two ways this goes wrong, both from answering without looking.
+
+**A `#name` in a request is probably a Popcorn channel.** Not Slack, not
+decoration. Resolve it before concluding anything about it:
+
+```bash
+POPCORN_AGENT=1 popcorn channel list '<name>'          # does it exist?
+POPCORN_AGENT=1 popcorn app list --channel '#<name>'   # does it run an app bundle?
+```
+
+Read **`.data.channel`** from that second one — it is what this channel runs,
+and `null` means it runs no bundle. Do not read `.data.apps` for this: that is
+every app available to the workspace's release track, so it is a long list even
+for a channel bound to nothing.
+
+A channel running an app bundle has tables, flows, schedules and webhooks you
+can read and change. The loop is `popcorn app fork` → `app checkout` → edit →
+`popcorn template check` → `app publish`, and it needs no deploy. Use those
+commands directly when the user asks for a change to what a channel does;
+`/popcorn:template` covers the same ground in more depth but is user-triggered,
+so never invoke or suggest it.
+
+**Popcorn's catalog decides what is buildable — your own tool list does not.**
+
+```bash
+POPCORN_AGENT=1 popcorn flow activities --tier foundation
+```
+
+"I have no tool for X" and "Popcorn cannot do X" are different claims, and
+reporting the first as the second is wrong in both directions: it refuses work
+the platform supports, and it presents a guess about your harness as a platform
+limit. Check the catalog, then answer from it — and if the capability genuinely
+is not there, say which one is missing and name Popcorn as the thing that lacks
+it, so the user can tell a real gap from a temporary one.
 
 ## CLI
 

@@ -33,12 +33,36 @@ popcorn-claude-code/
 
 ## Skills
 
-**popcorn** (alwaysApply: true):
+**popcorn** (description-triggered, like every other skill):
 - Routes agent to CLI (preferred) or MCP tools (fallback)
 - Installs CLI and MCP on first use via setup.sh
 - Command discovery via `popcorn commands`
 - MCP tool reference (whoami, get_channel, update_channel, post_message, read_messages, search, react)
 - Behavioral constraints (quote channels, confirm before sending, JSON envelope parsing)
+- Capability boundary: resolve a `#name` against `channel list` / `app list`
+  before answering, and read `flow activities` rather than the agent's own tool
+  list when deciding whether something is buildable
+
+**This skill is not "always on", and carried an `alwaysApply: true` that did
+nothing.** Claude Code loads skills by progressive disclosure: the `name` and
+`description` are in context from the start, the SKILL.md body only once
+something triggers it. `alwaysApply` is in no Claude Code documentation and no
+other skill on any machine we have checked — the plugin invented it, and the
+harness ignored it.
+
+The plugin-evals authoring runs are the evidence. Across three runs, including
+one that checked out and published a bundle, the body of this skill never
+loaded once: `setup.sh` appears in those transcripts only inside the
+`/popcorn:template` body after that skill was explicitly invoked. Everything
+this file described as always-on — setup, routing, the `#channel` quoting rule,
+the JSON-envelope rule — was invisible in every run.
+
+So **the description is the only load-bearing surface for anything the agent
+must know before it decides what to do.** It carries the trigger conditions
+explicitly, which is why it is long. Guidance that only matters once the agent
+is already working on Popcorn belongs in the body; guidance that has to fire
+*before* the agent forms a plan has to be in the description or it will not be
+read.
 
 **/popcorn:pop** (slash command, user-triggered):
 - Publishes local project files to a Popcorn app channel via VM
