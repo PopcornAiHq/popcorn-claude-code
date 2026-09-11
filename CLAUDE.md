@@ -99,6 +99,10 @@ description changed it completely, which is why the description is now long.
   needs a backend PR into `CHANNEL_TEMPLATES`; the skill hands that back rather
   than improvising a bundle nobody can install
 - CLI only — the MCP path cannot publish bundles. Requires popcorn-cli ≥ 0.20.0
+- Publishes on its own authority when nothing is reading its output mid-task
+  (`claude -p`, `POPCORN_AGENT=1`), reporting blast radius from
+  `other_channels_converging` rather than asking permission of nobody. The
+  fork-consequence warning still comes first in an interactive session
 
 ## Dependencies
 

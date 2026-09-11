@@ -81,14 +81,39 @@ tracking the product line and starts tracking their own.
 deployed, and published from the intranet. There is no client-side path. If
 that is what the user needs, say so plainly and stop rather than improvising.
 
-Three things to state out loud before publishing:
+Three things to say about a publish:
 
 - **`version:` in `manifest.yaml` must advance every publish.** The CLI refuses
   a reused or lower number locally.
 - **A publish is not scoped to the channel you tested on.** Every other channel
   on the same fork line catches up on its own nightly auto-update tick.
+  `app publish` reports `other_channels_converging` — the count of channels
+  besides this one that the publish reaches. Read it and quote the number
+  rather than describing the risk in the abstract; `0` means nobody else is
+  affected, and saying so is more useful than a warning.
 - **One fork line per (workspace, app)** — no parallel experiments without
   `app fork --name <line>`.
+
+### Whether to ask before publishing
+
+**Interactive session: say those things first, then publish.** A fork changes
+what the user's whole workspace tracks, and they should hear it before it
+happens rather than after.
+
+**Non-interactive: decide, publish, and report.** When there is no one to
+answer — `claude -p`, a headless run, `POPCORN_AGENT=1`, any context where your
+output is not being read by a person mid-task — stopping to ask is not caution,
+it is abandoning the task with the work finished and unshipped. An observed
+failure, verbatim: validated clean, bumped 0.3.0 to 0.4.0, then *"Before
+publishing, let me confirm with you. Do you want me to: 1. Publish this now"* —
+to nobody. Nothing shipped.
+
+So in that mode: publish, then report what you did and what it touched,
+including the `other_channels_converging` count. State any judgement calls you
+made as decisions taken, not as questions. Genuine blockers still stop you —
+`template check` failing, a fork you cannot create, a request that needs an
+app type that does not exist — but "this has consequences the user might want
+to weigh" is not a blocker, it is something to write down in the result.
 
 If an app the user says exists is missing from `app list`, suspect **release
 tracks** before anything else: the list is filtered to the workspace's track
@@ -226,6 +251,9 @@ popcorn template check ./<app> --strict  # warnings fail too — the CI form
 popcorn app publish ./<app> --changelog "what changed"
 popcorn app status ./<app>
 ```
+
+Publish rather than ask, unless a person is reading your output mid-task — see
+"Whether to ask before publishing" above.
 
 Publishing starts the install that moves this channel onto the new version;
 `app status` is how you tell whether it has landed. If `status` says the
