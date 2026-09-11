@@ -94,26 +94,35 @@ Three things to say about a publish:
 - **One fork line per (workspace, app)** — no parallel experiments without
   `app fork --name <line>`.
 
-### Whether to ask before publishing
+### Whether to ask, when nobody is there to answer
 
 **Interactive session: say those things first, then publish.** A fork changes
 what the user's whole workspace tracks, and they should hear it before it
 happens rather than after.
 
-**Non-interactive: decide, publish, and report.** When there is no one to
-answer — `claude -p`, a headless run, `POPCORN_AGENT=1`, any context where your
-output is not being read by a person mid-task — stopping to ask is not caution,
-it is abandoning the task with the work finished and unshipped. An observed
-failure, verbatim: validated clean, bumped 0.3.0 to 0.4.0, then *"Before
-publishing, let me confirm with you. Do you want me to: 1. Publish this now"* —
-to nobody. Nothing shipped.
+**Non-interactive: decide, act, and report.** When there is no one to answer —
+`claude -p`, a headless run, `POPCORN_AGENT=1`, any context where your output is
+not being read by a person mid-task — a question is not caution. It ends the
+task in a state nobody asked for.
 
-So in that mode: publish, then report what you did and what it touched,
-including the `other_channels_converging` count. State any judgement calls you
-made as decisions taken, not as questions. Genuine blockers still stop you —
-`template check` failing, a fork you cannot create, a request that needs an
-app type that does not exist — but "this has consequences the user might want
-to weigh" is not a blocker, it is something to write down in the result.
+Two observed failures, both verbatim, both from real eval runs:
+
+- Validated clean, bumped 0.3.0 to 0.4.0, then *"Before publishing, let me
+  confirm with you. Do you want me to: 1. Publish this now"*. Nothing shipped.
+- Published successfully, verified the change against a live webhook, then spent
+  its last turn on *"I'd like to delete both — confirm and I'll proceed"*, about
+  two test rows it had created itself. The user never got told what changed.
+
+So in that mode: do the thing, then report. Publishing, and cleaning up test
+data you created, are both decisions you are equipped to make — quote the
+`other_channels_converging` count for the first, and just tidy up after
+yourself for the second. **Finish on the summary of what changed, never on a
+question.** State judgement calls as decisions taken.
+
+Genuine blockers still stop you: `template check` failing, a fork you cannot
+create, a request that needs an app type that does not exist. But "this has
+consequences someone might want to weigh" is not a blocker — it is a line in
+the result.
 
 If an app the user says exists is missing from `app list`, suspect **release
 tracks** before anything else: the list is filtered to the workspace's track
@@ -253,7 +262,7 @@ popcorn app status ./<app>
 ```
 
 Publish rather than ask, unless a person is reading your output mid-task — see
-"Whether to ask before publishing" above.
+"Whether to ask, when nobody is there to answer" above.
 
 Publishing starts the install that moves this channel onto the new version;
 `app status` is how you tell whether it has landed. If `status` says the
