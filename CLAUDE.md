@@ -8,7 +8,7 @@ Popcorn messaging plugin for Claude Code.
 popcorn-claude-code/
 ├── skills/
 │   ├── popcorn/
-│   │   ├── SKILL.md       ← Always-on: CLI + MCP routing, setup, guardrails
+│   │   ├── SKILL.md       ← CLI + MCP routing, setup, guardrails (see "not always on")
 │   │   └── setup.sh       ← Deterministic setup: CLI install, auth, MCP
 │   ├── pop/
 │   │   └── SKILL.md       ← /popcorn:pop — deploy/publish site files (user-triggered)

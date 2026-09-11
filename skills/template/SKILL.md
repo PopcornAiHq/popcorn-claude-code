@@ -59,6 +59,11 @@ popcorn app publish ./<app> --changelog "what changed"
 popcorn app status ./<app>              # has the install landed?
 ```
 
+`.data.channel` from that first command is the binding — `null` means the
+channel runs no bundle at all, and nothing to fork. `.data.apps` beside it is
+every app available to the workspace's release track, which is a different
+question and a long list either way.
+
 `fork` first, always: a publish lands on a fork line the workspace **owns**, so
 publishing from a channel still bound to the shared product version is refused.
 Tell the user what forking means before you run it — their channel stops
@@ -77,11 +82,6 @@ Three things to state out loud before publishing:
   on the same fork line catches up on its own nightly auto-update tick.
 - **One fork line per (workspace, app)** — no parallel experiments without
   `app fork --name <line>`.
-
-`.data.channel` is the binding — `null` means the channel runs no bundle at
-all, and nothing to fork. `.data.apps` beside it is every app available to the
-workspace's release track, which is not the same question and is a long list
-either way.
 
 If an app the user says exists is missing from `app list`, suspect **release
 tracks** before anything else: the list is filtered to the workspace's track
