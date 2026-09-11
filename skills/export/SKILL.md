@@ -2,7 +2,6 @@
 name: export
 description: Export site files from a Popcorn channel into the local project. USER-TRIGGERED ONLY — never invoke pre-emptively. For general export, use the CLI directly (popcorn site export).
 allowed-tools: Bash
-userTriggered: true
 ---
 
 # /popcorn:export — Export from Popcorn

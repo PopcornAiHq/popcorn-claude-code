@@ -2,7 +2,6 @@
 name: template
 description: Author, validate, publish and debug a Popcorn channel-template bundle (tables + flows + schedules + webhooks) using the popcorn CLI — the app fork/checkout/publish loop for an app that already exists. USER-TRIGGERED ONLY — never invoke pre-emptively.
 allowed-tools: Bash, Read, Write, Edit, Glob, Grep
-userTriggered: true
 ---
 
 # /popcorn:template — Author a channel template
@@ -24,6 +23,14 @@ bash "${CLAUDE_PLUGIN_ROOT}/skills/popcorn/setup.sh"
 The last line is JSON: `{"cli":true/false,"auth":true/false,"mcp":true/false}`.
 This skill needs `cli` and `auth` true — the MCP path cannot publish bundles.
 If either is false, stop and tell the user what failed.
+
+**Prefix every command in this skill with `POPCORN_AGENT=1`.** It injects
+`--json`, `--quiet` and `--no-color`. Without it the CLI prints for humans, and
+the `.data.*` fields this skill tells you to read are not there to read.
+
+```bash
+POPCORN_AGENT=1 popcorn app list --channel '#chan'
+```
 
 Then confirm the CLI is recent enough to have the authoring commands:
 

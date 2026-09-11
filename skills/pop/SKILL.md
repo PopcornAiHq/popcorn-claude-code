@@ -2,7 +2,6 @@
 name: pop
 description: Deploy/publish local project files to a Popcorn channel. USER-TRIGGERED ONLY — never invoke pre-emptively. For general deploy requests, use the CLI directly (popcorn site deploy).
 allowed-tools: Bash
-userTriggered: true
 ---
 
 # /popcorn:pop — Publish to Popcorn
