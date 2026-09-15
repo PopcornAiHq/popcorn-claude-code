@@ -95,9 +95,51 @@ The CLI auto-updates. To upgrade manually: `popcorn upgrade`.
 
 ### Message Structure
 
-Messages have `content.parts[]`, each with a `type`:
-- **`text`** → `part.text` (markdown string)
-- **`media`** → `part.url` (file key for `download`), `part.filename`, `part.mime_type`, `part.size_bytes`
+Messages have `content.parts[]`, each tagged with a `type`. **There is no
+`part.text`** — the text body is `part.content`, and several part types carry no
+body at all, so branch on `type` before reading anything off a part.
+
+- **`text`** → `part.content`, rendered according to `part.format`: `plain`,
+  `markdown`, or `code` (with `part.language`)
+- **`media`** → `part.mime_type`, `part.url`, `part.filename`, `part.size_bytes`
+  (all four always present). `url` holds an internal `file_uploads` key, not an
+  http URL — pass it to `download`
+- **`system`** → `part.content`, injected context rather than anything a person
+  typed. No `format`
+- **`agentFinalized`** → no body. `part.success` marks the end of an agent turn
+
+Rarer types exist and will appear eventually: `toolCall`, `toolResult`,
+`linkPreview`, `integration`, `permission`, `deleted`, `inaccessible`, `s3`. A
+loop that assumes every part has a body breaks on the first agent reply it
+meets, because a finalized agent turn ends with a bodyless `agentFinalized`.
+
+Every part also carries `id`, `created_at`, `version`, `visibility` and
+`attachments` regardless of type.
+
+### Posting markdown needs `format: markdown`
+
+**`foundation.channel.post` defaults to `format: plain`.** Text written with
+markdown markup — `**bold**`, headings, lists — renders its asterisks and
+hashes literally unless the step says otherwise:
+
+```yaml
+- id: announce
+  activity: foundation.channel.post
+  args:
+    channel_id: $inputs.conversation_id
+    text: "**Deploy complete** — 3 services updated"
+    format: markdown          # without this the ** ships as literal asterisks
+```
+
+This catches people out because it is backwards from the path they know: an
+agent writing a reply posts `markdown` by default, and only flows default to
+`plain`. Nothing in the authoring loop surfaces it either — `template check`
+passes, the flow runs green, and the message is wrong only on screen. Check
+`part.format` in `message list` output after a test run.
+
+`foundation.channel.edit` and `foundation.channel.post_file` take **no `format`
+argument at all** and always emit `plain`. A flow that posts markdown and then
+refreshes that message with `channel.edit` silently loses the rendering.
 
 ## MCP Tools
 
