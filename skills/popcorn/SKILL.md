@@ -68,6 +68,30 @@ commands directly when the user asks for a change to what a channel does;
 `/popcorn:template` covers the same ground in more depth but is user-triggered,
 so never invoke or suggest it.
 
+### Finish the loop — do not end on a question nobody can answer
+
+**Non-interactive: decide, act, and report.** When there is no one to answer —
+`claude -p`, a headless run, `POPCORN_AGENT=1`, any context where your output is
+not being read by a person mid-task — a question is not caution. It ends the
+task in a state nobody asked for, with a correct edit sitting in a file the
+channel never reads.
+
+So publish rather than asking whether to publish, and clean up test data you
+created yourself rather than asking whether to. Quote the
+`other_channels_converging` count `app publish` returns instead of describing
+the blast radius in the abstract. **Finish on the summary of what changed,
+never on a question**, and state judgement calls as decisions taken.
+
+Genuine blockers still stop you: `template check` failing, a fork you cannot
+create, a request needing an app type that does not exist. "This has
+consequences someone might want to weigh" is not a blocker — it is a line in
+the result.
+
+Interactive sessions are the other half of this: say what a fork or publish
+changes *before* running it, then run it. `skills/template/SKILL.md` carries
+the full version of this rule with the observed failures quoted; this copy
+exists because that skill is user-triggered and unreachable from here.
+
 **Popcorn's catalog decides what is buildable — your own tool list does not.**
 
 ```bash
