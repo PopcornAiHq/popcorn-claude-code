@@ -42,6 +42,11 @@ popcorn-claude-code/
 - Capability boundary: resolve a `#name` against `channel list` / `app list`
   before answering, and read `flow activities` rather than the agent's own tool
   list when deciding whether something is buildable
+- Checkout recognition: a directory holding `.popcorn-app.json` is a checked-out
+  app bundle, and an edit to a file in it ships nothing until `template check`
+  and `app publish` have run. This lives in the `description` because no
+  phrasing of the request will name a channel — the signal is the working
+  directory, and the marker filename reaches context through tool output
 
 ### Invented frontmatter fields do nothing
 
@@ -58,11 +63,44 @@ it. There is no "apply this always" switch, so **the description is the only
 load-bearing surface for anything the agent must know before it decides what to
 do.**
 
-Removing `userTriggered` changed nothing, because each of those four skills also
-states `USER-TRIGGERED ONLY — never invoke pre-emptively` in its **description**,
-which is the copy that was doing the work all along. Keep it that way: if a rule
-must hold before the skill is invoked, it goes in the description. Anything that
-only matters once the agent is already working on Popcorn belongs in the body.
+Removing `userTriggered` changed nothing at the time, because each of those four
+skills also stated `USER-TRIGGERED ONLY — never invoke pre-emptively` in its
+**description** — prose hoping the model complied. That prose is gone too, in
+favour of the real field, `disable-model-invocation: true`.
+
+The rule that survives both changes: if something must hold before the skill is
+invoked, it goes in the `description`; anything that only matters once the agent
+is already working on Popcorn belongs in the body.
+
+### `disable-model-invocation: true` is real, and it is not prose
+
+On `pop`, `messages`, `export` and `template`. Unlike `alwaysApply`, this one is
+implemented, and the check that separates the two is worth repeating before
+anyone adds a third field: **read it out of the installed binary, not out of a
+doc that might describe a different product.** `claude plugin validate --strict`
+does not help here — it passes a SKILL.md carrying `alwaysApply` just as happily
+as one carrying a real field, so it cannot tell you which is which.
+
+What the runtime actually does with the flag:
+
+- It is in the parser's known-field list, beside `user-invocable`, `when_to_use`
+  and `paths`. `alwaysApply` is not, and never was.
+- The skill is **filtered out of the listing sent to the model** — the eligibility
+  predicate requires `!disableModelInvocation`. So the description of these four
+  no longer reaches the model at all, which is what frees listing budget and stops
+  them diluting the popcorn skill's triggers. It is also why the `USER-TRIGGERED
+  ONLY` prose was removed rather than kept: it addressed a reader that no longer
+  sees it, while still being read by users in the slash-command list, where an
+  instruction aimed at the model is noise.
+- A Skill-tool invocation is refused outright unless the user typed the command
+  **this turn**. The refusal is a hard gate, not a preference, and its own message
+  tells the model not to replicate the workflow by other means.
+
+That last point cuts wider than "the model won't auto-invoke": a **nested** skill
+invocation is also refused, since it is a Skill-tool call the user did not type.
+Nothing in this plugin nests these four — the popcorn skill's body says never to
+invoke or suggest them — so there is no path to break. Anything added later that
+wants to call one of them from another skill will not be able to.
 
 The plugin-evals authoring runs are the evidence. Across three runs, including
 one that checked out and published a bundle, the body of the popcorn skill never

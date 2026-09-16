@@ -1,7 +1,8 @@
 ---
 name: messages
-description: Pull recent channel messages into context. USER-TRIGGERED ONLY — never invoke pre-emptively. For general message reading, use the CLI directly (popcorn message list).
+description: Pull recent channel messages into context. For general message reading, use the CLI directly (popcorn message list).
 allowed-tools: Bash
+disable-model-invocation: true
 ---
 
 # /popcorn:messages — Pull Channel Context

@@ -1,7 +1,8 @@
 ---
 name: export
-description: Export site files from a Popcorn channel into the local project. USER-TRIGGERED ONLY — never invoke pre-emptively. For general export, use the CLI directly (popcorn site export).
+description: Export site files from a Popcorn channel into the local project. For general export, use the CLI directly (popcorn site export).
 allowed-tools: Bash
+disable-model-invocation: true
 ---
 
 # /popcorn:export — Export from Popcorn
