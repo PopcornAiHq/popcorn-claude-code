@@ -97,6 +97,10 @@ Three things to say about a publish:
 
 ### Whether to ask, when nobody is there to answer
 
+> A condensed copy of this rule lives in `skills/popcorn/SKILL.md`, which
+> is the skill a model can actually reach — this one is user-triggered.
+> Change both together.
+
 **Interactive session: say those things first, then publish.** A fork changes
 what the user's whole workspace tracks, and they should hear it before it
 happens rather than after.
