@@ -1,7 +1,8 @@
 ---
 name: template
-description: Author, validate, publish and debug a Popcorn channel-template bundle (tables + flows + schedules + webhooks) using the popcorn CLI — the app fork/checkout/publish loop for an app that already exists. USER-TRIGGERED ONLY — never invoke pre-emptively.
+description: Author, validate, publish and debug a Popcorn channel-template bundle (tables + flows + schedules + webhooks) using the popcorn CLI — the app fork/checkout/publish loop for an app that already exists.
 allowed-tools: Bash, Read, Write, Edit, Glob, Grep
+disable-model-invocation: true
 ---
 
 # /popcorn:template — Author a channel template

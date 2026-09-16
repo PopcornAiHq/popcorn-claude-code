@@ -1,6 +1,6 @@
 ---
 name: popcorn
-description: Popcorn integration — CLI, MCP tools, setup, and behavioral guardrails. Popcorn is a full-stack app platform whose channels can run app bundles (tables, flows, schedules, webhooks). TRIGGER whenever a request names a '#channel-name', or mentions a Popcorn channel, workspace, tracker, site or app; asks to deploy, publish, export, post or read messages; asks to change what a channel does, records or notifies; OR asks whether some automation is possible at all — a '#name' is a Popcorn channel rather than Slack, and Popcorn's own 'flow activities' catalog decides what is buildable, never the set of tools this harness happens to expose.
+description: Popcorn integration — CLI, MCP tools, setup, and behavioral guardrails. Popcorn is a full-stack app platform whose channels can run app bundles (tables, flows, schedules, webhooks). TRIGGER whenever a request names a '#channel-name', or mentions a Popcorn channel, workspace, tracker, site or app; asks to deploy, publish, export, post or read messages; asks to change what a channel does, records or notifies; OR asks whether some automation is possible at all — a '#name' is a Popcorn channel rather than Slack, and Popcorn's own 'flow activities' catalog decides what is buildable, never the set of tools this harness happens to expose. ALSO TRIGGER on the working directory, whatever the request says — a directory containing '.popcorn-app.json' is a checked-out Popcorn app bundle, and editing a file in it ships nothing until 'popcorn template check' and 'popcorn app publish' have run.
 allowed-tools: Bash, mcp__popcorn__whoami, mcp__popcorn__get_channel, mcp__popcorn__update_channel, mcp__popcorn__post_message, mcp__popcorn__read_messages, mcp__popcorn__search, mcp__popcorn__react
 ---
 
@@ -59,7 +59,11 @@ for a channel bound to nothing.
 
 A channel running an app bundle has tables, flows, schedules and webhooks you
 can read and change. The loop is `popcorn app fork` → `app checkout` → edit →
-`popcorn template check` → `app publish`, and it needs no deploy. Use those
+`popcorn template check` → `app publish`, and it needs no deploy. A directory
+already holding a `.popcorn-app.json` is a checkout partway through that
+loop — the baseline names the app version and channel it came from — so an
+edit to a file in it has changed nothing the channel runs until
+`template check` and `app publish` have gone through. Use those
 commands directly when the user asks for a change to what a channel does;
 `/popcorn:template` covers the same ground in more depth but is user-triggered,
 so never invoke or suggest it.
