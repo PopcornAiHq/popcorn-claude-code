@@ -5,8 +5,8 @@ set -euo pipefail
 # Creates an isolated environment, launches Claude Code, and cleans up after.
 #
 # Usage:
-#   ./scripts/test-install.sh            # test plugin install flow
-#   ./scripts/test-install.sh --no-cli   # also hides popcorn-cli to test detection/setup flow
+#   ./dev/test-install.sh            # test plugin install flow
+#   ./dev/test-install.sh --no-cli   # also hides popcorn-cli to test detection/setup flow
 
 NO_CLI=false
 TEST_PROJECT=""
@@ -42,7 +42,8 @@ This is a throwaway project for testing the popcorn-claude-code plugin.
 ## What to test
 
 1. Install the plugin (see prompt below)
-2. Verify the always-on `popcorn` skill loads (check system reminders)
+2. Verify the `popcorn` skill body loads when a request triggers it — ask
+   something naming a `#channel`, not just whether the skill is listed
 3. Test `/popcorn:pop` and `/popcorn:messages` slash commands
 4. Verify CLI install prompt triggers on first use
 PROJ_MD
@@ -65,7 +66,8 @@ echo "    /plugin install popcorn@popcorn"
 echo ""
 echo -e "${BOLD}▶ Step 2: Verify${RESET}"
 echo ""
-echo "    - Does the popcorn skill appear in system reminders?"
+echo "    - Ask something naming a #channel. Does the popcorn skill BODY load?"
+echo "      (Its description is always listed — that alone proves nothing.)"
 echo "    - Does /popcorn:pop load?"
 echo "    - Does /popcorn:messages load?"
 echo ""
