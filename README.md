@@ -15,7 +15,7 @@ In Claude Code:
 
 ## What's Included
 
-- **popcorn** skill — Popcorn integration, triggered by what you ask for: a `#channel`, a deploy, or a change to what a channel does. Sets up CLI + MCP, provides command routing and guardrails.
+- **popcorn** skill — Popcorn integration, triggered by what you ask for: a `#channel`, a tracker, or a change to what a channel tracks. Sets up CLI + MCP, provides command routing and guardrails.
 - `/popcorn:template` — author, validate, install and debug a channel template (tables + flows + schedules + webhooks). Requires the CLI; the MCP path cannot import bundles.
 
 ## CLI vs MCP
@@ -26,7 +26,7 @@ This plugin works with either transport:
 |---|---|---|
 | Install | Auto-installed on first use | Auto-configured on first use |
 | Updates | Auto-updates itself (or `popcorn upgrade`) | Server-side (transparent) |
-| Features | Full (30+ commands) | 7 tools (messaging, channels, deploy) |
+| Features | Full (30+ commands) | 7 tools (messaging, channels) |
 | Context usage | Minimal (runs in shell) | Higher (MCP tool calls) |
 | Recommended | Yes — preferred for all operations | Always available for conversational features |
 
