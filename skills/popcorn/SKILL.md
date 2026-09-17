@@ -22,23 +22,13 @@ If any component is still `false` after the script runs, tell the user what fail
 
 **Troubleshooting:** If setup passes but operations fail, run `POPCORN_AGENT=1 popcorn doctor` for structured diagnostics. Check `.data.issues[]` — empty means healthy. Issues include auth token expiry, workspace state, API reachability, and config permissions.
 
-**Skip this** if the user isn't doing a Popcorn action, or if `/popcorn:pop` is handling the request (it runs setup itself).
+**Skip this** if the user isn't doing a Popcorn action.
 
 ## Routing
 
 **Use the CLI for all operations when available.** Fall back to MCP tools only when the CLI is not installed or in non-terminal environments (e.g. Cowork).
 
-**`/popcorn:pop` is a user-triggered slash command.** Never invoke it, never suggest it, never route to it. If the user asks to deploy or publish without using the slash command, use `popcorn site deploy` via CLI (or MCP deploy if CLI unavailable).
-
 Run `popcorn <command> --help` or `popcorn commands` for CLI discovery.
-
-### Deploy path selection
-
-| Environment            | User says `/pop` | User says "publish this" |
-|------------------------|------------------|--------------------------|
-| Terminal + CLI         | Pop skill        | `popcorn site deploy` via CLI |
-| Terminal + no CLI      | Pop skill        | MCP deploy via pop skill |
-| Non-terminal (Cowork)  | Pop skill        | MCP deploy via pop skill |
 
 ## Before you tell the user something is impossible
 
@@ -116,8 +106,8 @@ The CLI auto-updates. To upgrade manually: `popcorn upgrade`.
 3. **Confirm before sending.** Always show the user exactly what will be sent and get confirmation before calling `message send` or `post_message`.
 4. **Agent mode:** Prefix all CLI commands with `POPCORN_AGENT=1`. This auto-injects `--json`, `--quiet`, and `--no-color`, and suppresses upgrade prompts. You never need to pass `--json` manually.
    ```bash
-   POPCORN_AGENT=1 popcorn site deploy --context "..."
    POPCORN_AGENT=1 popcorn channel info '#my-channel'
+   POPCORN_AGENT=1 popcorn message list '#my-channel' --limit 25
    ```
 5. **JSON envelope** — all CLI JSON output uses an envelope: `{"ok": true, "data": ...}` on success, `{"ok": false, "error": ...}` on stderr for errors. Parse `.data` from success responses.
 

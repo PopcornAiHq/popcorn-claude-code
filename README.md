@@ -16,9 +16,6 @@ In Claude Code:
 ## What's Included
 
 - **popcorn** skill — Popcorn integration, triggered by what you ask for: a `#channel`, a deploy, or a change to what a channel does. Sets up CLI + MCP, provides command routing and guardrails.
-- `/popcorn:pop` — publish your project to a Popcorn channel in one command.
-- `/popcorn:messages` — pull recent channel messages into context for iteration.
-- `/popcorn:export` — export site files from a Popcorn channel into your project.
 - `/popcorn:template` — author, validate, install and debug a channel template (tables + flows + schedules + webhooks). Requires the CLI; the MCP path cannot import bundles.
 
 ## CLI vs MCP

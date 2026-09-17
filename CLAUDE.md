@@ -46,12 +46,6 @@ popcorn-claude-code/
 │   ├── popcorn/
 │   │   ├── SKILL.md       ← CLI + MCP routing, setup, guardrails (see "not always on")
 │   │   └── setup.sh       ← Deterministic setup: CLI install, auth, MCP
-│   ├── pop/
-│   │   └── SKILL.md       ← /popcorn:pop — deploy/publish site files (user-triggered)
-│   ├── messages/
-│   │   └── SKILL.md       ← /popcorn:messages — pull channel messages into context
-│   ├── export/
-│   │   └── SKILL.md       ← /popcorn:export — export site files from channel into project
 │   └── template/
 │       └── SKILL.md       ← /popcorn:template — author a channel-template bundle
 ├── .claude-plugin/
@@ -89,8 +83,8 @@ popcorn-claude-code/
 ### Invented frontmatter fields do nothing
 
 This plugin carried two frontmatter fields Claude Code does not implement:
-`alwaysApply: true` on the popcorn skill and `userTriggered: true` on the other
-four. Both are gone. `alwaysApply` is a **Cursor** convention — it is all over
+`alwaysApply: true` on the popcorn skill and `userTriggered: true` on the four
+user-triggered skills that existed then. Both are gone. `alwaysApply` is a **Cursor** convention — it is all over
 `.cursor/rules/*.mdc` in other people's repos — and it appears in no Claude Code
 documentation and no other skill on any machine we have checked. Borrowing it
 here bought nothing and cost a real guarantee.
@@ -101,7 +95,7 @@ it. There is no "apply this always" switch, so **the description is the only
 load-bearing surface for anything the agent must know before it decides what to
 do.**
 
-Removing `userTriggered` changed nothing at the time, because each of those four
+Removing `userTriggered` changed nothing at the time, because each of those
 skills also stated `USER-TRIGGERED ONLY — never invoke pre-emptively` in its
 **description** — prose hoping the model complied. That prose is gone too, in
 favour of the real field, `disable-model-invocation: true`.
@@ -112,7 +106,7 @@ is already working on Popcorn belongs in the body.
 
 ### `disable-model-invocation: true` is real, and it is not prose
 
-On `pop`, `messages`, `export` and `template`. Unlike `alwaysApply`, this one is
+On `template`, the one user-triggered skill left. Unlike `alwaysApply`, this one is
 implemented, and the check that separates the two is worth repeating before
 anyone adds a third field: **read it out of the installed binary, not out of a
 doc that might describe a different product.** `claude plugin validate --strict`
@@ -124,8 +118,8 @@ What the runtime actually does with the flag:
 - It is in the parser's known-field list, beside `user-invocable`, `when_to_use`
   and `paths`. `alwaysApply` is not, and never was.
 - The skill is **filtered out of the listing sent to the model** — the eligibility
-  predicate requires `!disableModelInvocation`. So the description of these four
-  no longer reaches the model at all, which is what frees listing budget and stops
+  predicate requires `!disableModelInvocation`. So the descriptions of those
+  skills no longer reach the model at all, which is what frees listing budget and stops
   them diluting the popcorn skill's triggers. It is also why the `USER-TRIGGERED
   ONLY` prose was removed rather than kept: it addressed a reader that no longer
   sees it, while still being read by users in the slash-command list, where an
@@ -136,9 +130,10 @@ What the runtime actually does with the flag:
 
 That last point cuts wider than "the model won't auto-invoke": a **nested** skill
 invocation is also refused, since it is a Skill-tool call the user did not type.
-Nothing in this plugin nests these four — the popcorn skill's body says never to
-invoke or suggest them — so there is no path to break. Anything added later that
-wants to call one of them from another skill will not be able to.
+Nothing in this plugin nests `template` — the popcorn skill handles deploys,
+exports and message reads in-line rather than routing to a skill — so there is
+no path to break. Anything added later that wants to call it from another skill
+will not be able to.
 
 The authoring eval runs are the evidence. Across three runs, including
 one that checked out and published a bundle, the body of the popcorn skill never
@@ -148,23 +143,6 @@ this file described as always-on — setup, routing, the `#channel` quoting rule
 the JSON-envelope rule — was invisible in every run. Adding guidance to that
 body changed no behaviour at all; moving the trigger conditions into the
 description changed it completely, which is why the description is now long.
-
-**/popcorn:pop** (slash command, user-triggered):
-- Publishes local project files to a Popcorn app channel via VM
-- Reads `.popcorn.local.json` (v2: multi-target, workspace-aware) for target resolution
-- CLI deploy path (preferred): `popcorn site deploy`
-- MCP deploy path (fallback): delegates to server-side `pop` prompt
-
-**/popcorn:messages** (slash command, user-triggered):
-- Pulls recent channel messages into context for iteration
-- Resolves channel from `.popcorn.local.json` or user input
-- CLI path (preferred) or MCP `read_messages` fallback
-
-**/popcorn:export** (slash command, user-triggered):
-- Exports site files from a Popcorn channel into the local project
-- Inverse of `/popcorn:pop` — downloads and extracts the deployed version
-- Backs up current files to `.popcorn-backup/`, supports `--revert`
-- CLI only (no MCP fallback)
 
 **/popcorn:template** (slash command, user-triggered):
 - Authors a channel-template bundle: manifest (tables/schedules/webhooks) plus
