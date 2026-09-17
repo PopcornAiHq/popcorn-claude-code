@@ -88,7 +88,7 @@ POPCORN_AGENT=1 popcorn site deploy my-app --context-from-git
 POPCORN_AGENT=1 popcorn site deploy --context "Add dark mode toggle"
 
 # With workspace override (target's workspace differs from current):
-POPCORN_AGENT=1 popcorn --workspace Camino site deploy --context-from-git
+POPCORN_AGENT=1 popcorn --workspace my-workspace site deploy --context-from-git
 ```
 
 The CLI handles: target resolution, tarball creation, git context generation, S3 upload, and VM deploy. It writes `.popcorn.local.json` automatically after deploy.

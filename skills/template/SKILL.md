@@ -77,10 +77,10 @@ publishing from a channel still bound to the shared product version is refused.
 Tell the user what forking means before you run it — their channel stops
 tracking the product line and starts tracking their own.
 
-**Creating a new app type — a backend PR, not this skill.** A genuinely new
-`app_type` has to be checked into popcorn-backend's `CHANNEL_TEMPLATES`,
-deployed, and published from the intranet. There is no client-side path. If
-that is what the user needs, say so plainly and stop rather than improvising.
+**Creating a new app type — a server-side change, not this skill.** A
+genuinely new `app_type` has to be registered and released on the server before
+any channel can install it. There is no client-side path. If that is what the
+user needs, say so plainly and stop rather than improvising.
 
 Three things to say about a publish:
 
@@ -110,7 +110,7 @@ happens rather than after.
 not being read by a person mid-task — a question is not caution. It ends the
 task in a state nobody asked for.
 
-Two observed failures, both verbatim, both from real eval runs:
+Two observed failures, both quoted verbatim:
 
 - Validated clean, bumped 0.3.0 to 0.4.0, then *"Before publishing, let me
   confirm with you. Do you want me to: 1. Publish this now"*. Nothing shipped.
@@ -357,7 +357,6 @@ immediately. Always check the **child's** run.
 **This skill edits apps that exist.** It forks, checks out, publishes and
 debugs — the loop under "How a bundle actually gets installed".
 
-Do not offer to register a bundle in the backend repo's `CHANNEL_TEMPLATES`,
-deploy the backend, or publish from the intranet. Creating a new app type is a
-backend-side change with its own review, and improvising it from here produces
-a bundle nobody can install. Say what the path is and hand it back.
+Do not offer to register a new app type yourself. That is a server-side
+change with its own review, and improvising it from here produces a bundle
+nobody can install. Say what the path is and hand it back.

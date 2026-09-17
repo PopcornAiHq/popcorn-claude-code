@@ -1,4 +1,7 @@
-.PHONY: bump
+.PHONY: bump check
+
+check:  ## Scan the index for internal-only references (this repo is public)
+	@dev/check-public-repo.sh && echo "✓ No internal-only references"
 
 bump:  ## Bump version: make bump [v=X.Y.Z] (patch if omitted)
 	$(eval v := $(or $(v),$(shell python3 -c "import json; v=json.load(open('.claude-plugin/plugin.json'))['version'].split('.'); v[-1]=str(int(v[-1])+1); print('.'.join(v))")))
