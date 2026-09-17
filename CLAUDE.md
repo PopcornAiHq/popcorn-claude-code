@@ -2,6 +2,42 @@
 
 Popcorn messaging plugin for Claude Code.
 
+## This repository is public
+
+`PopcornAiHq/popcorn-claude-code` is public, and it ships to a marketplace —
+every reader of this tree is outside Popcorn. Internal-only references must not
+be written here: issue-tracker ids, the private sibling repos by name, symbols
+and deploy topology from the private backend, real workspace or channel ids, and
+employee email addresses.
+
+**Cite behaviour, never the thing that proves it.** "Creating a new app type is
+a server-side change with its own review" belongs here; the backend symbol it is
+registered in and the internal tool it is released from do not. A sentence that
+needs the citation to make sense is under-written — say the thing.
+
+Ids in examples are placeholders, never copied from a live system:
+`<conversation-id>`, `<workspace-id>`, `my-workspace`, `#my-app`.
+
+This cuts directly against the conventions of the private repos next door, which
+encourage citing `KEW-NNNN`, PR numbers and source paths as durable references.
+That is correct there. Do not carry it across a `cd`. `popcorn-cli` is the one
+sibling that is itself public, so a link into it resolves for a reader and is
+fine.
+
+`dev/check-public-repo.sh` enforces the mechanical part, as a pre-commit hook,
+as its own CI job, and as `make check`. It catches an id, a repo name or a
+symbol; it cannot catch a paragraph that describes internal architecture, so the
+judgement above is still yours.
+
+**Audit with `git ls-files`, not `ls`, `grep -r` or `find`.** Those walk
+gitignored scratch (`docs/` is ignored here) and over-report, in the direction
+that manufactures false alarms.
+
+Removing something from `HEAD` does not unpublish it. Commit messages and merged
+diffs are already public — this repo's history carries tracker ids and internal
+names that the scrub could not reach. The check exists to stop the next one, not
+to repair the last.
+
 ## Structure
 
 ```
@@ -24,8 +60,10 @@ popcorn-claude-code/
 ├── dev/                        ← Dev-only tooling (not used at runtime)
 │   ├── test-install.sh         ← Isolated env for testing plugin install flow
 │   ├── check-version-bump.sh   ← Pre-commit hook: warns on missing version bump
-├── Makefile                    ← make bump v=X.Y.Z
-├── .pre-commit-config.yaml     ← version bump reminder hook
+│   └── check-public-repo.sh    ← Pre-commit + CI: no internal-only references
+├── .github/workflows/ci.yml    ← Runs check-public-repo.sh on push and PR
+├── Makefile                    ← make bump v=X.Y.Z, make check
+├── .pre-commit-config.yaml     ← version bump reminder + public-repo check
 ├── CLAUDE.md
 ├── README.md
 └── LICENSE
@@ -102,7 +140,7 @@ Nothing in this plugin nests these four — the popcorn skill's body says never 
 invoke or suggest them — so there is no path to break. Anything added later that
 wants to call one of them from another skill will not be able to.
 
-The plugin-evals authoring runs are the evidence. Across three runs, including
+The authoring eval runs are the evidence. Across three runs, including
 one that checked out and published a bundle, the body of the popcorn skill never
 loaded once: `setup.sh` appears in those transcripts only inside the
 `/popcorn:template` body after that skill was explicitly invoked. Everything
@@ -134,8 +172,8 @@ description changed it completely, which is why the description is now long.
 - Drives the `app fork` → `checkout` → edit → `template check` → `app publish`
   loop, which needs no backend deploy
 - **Scope is editing an app that already exists.** Creating a new `app_type`
-  needs a backend PR into `CHANNEL_TEMPLATES`; the skill hands that back rather
-  than improvising a bundle nobody can install
+  is a server-side change; the skill hands that back rather than improvising a
+  bundle nobody can install
 - CLI only — the MCP path cannot publish bundles. Requires popcorn-cli ≥ 0.20.0
 - Publishes on its own authority when nothing is reading its output mid-task
   (`claude -p`, `POPCORN_AGENT=1`), reporting blast radius from

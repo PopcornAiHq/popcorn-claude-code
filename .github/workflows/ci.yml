@@ -1,0 +1,27 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# A force-push or rapid re-push supersedes the older run rather than queueing it.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  public-repo:
+    name: No internal-only references
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # A hook only sees what someone with `pre-commit install` staged. This is
+      # the check that holds for a contributor who never ran it, and for content
+      # that is already committed.
+      - name: Check for internal-only references
+        run: dev/check-public-repo.sh
