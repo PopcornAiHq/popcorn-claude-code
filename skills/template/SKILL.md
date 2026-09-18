@@ -189,22 +189,65 @@ edit the real thing, so your diff is against what is actually installed:
 popcorn app fork --channel '#chan' && popcorn app checkout --channel '#chan'
 ```
 
-A scaffold from scratch is for a bundle that will become a new app type via a
-backend PR. Either way the shape is the same:
+A scaffold from scratch is for a bundle that will become a new app type. Either
+way the shape is the same:
 
 ```
 mytemplate/
-├── manifest.yaml       tables, channel_parameters, scalars, schedules, webhooks
-├── AGENT.md            notes injected into the channel agent's prompt
-├── README.md           human docs
-├── <flow>.yaml         one per flow; identity is the `name:` inside, not the filename
-└── fixtures/*.json     sample payloads — MUST be .json, never .yaml
+├── manifest.yaml            tables, channel_parameters, scalars, schedules, webhooks
+├── AGENT.md                 notes injected into the channel agent's prompt
+├── README.md                human docs
+├── strings.yaml             locale-sectioned UI copy → `copy:<app>.*` scalars
+├── <flow>.yaml              one per flow; identity is the `name:` inside, not the filename
+├── prompts/<name>.md.j2     seeded into config, read as `$channel.prompts.<name>`
+├── templates/<name>.md.j2   same, read as `$channel.templates.<name>`
+└── code/<block>/            custom code, run by `foundation.code.execute`
 ```
+
+**Every path in the tree must be one of those, or `app publish` refuses the
+bundle.** It does not ignore a stray file — an unrecognized path would mint a
+version whose digest covers bytes the installer never reads, so the publish is
+rejected outright.
+
+**`template check` will not catch this.** It reports a tree carrying
+`fixtures/sample.json` and `notes.txt` as clean, with no error and no warning,
+and the publish then refuses it. Path placement is the one part of the bundle
+you have to get right by reading rather than by running the checker, which is
+why the rules are spelled out here:
+
+- **Flows live at the root.** `flows/claim_tick.yaml` is not a flow, it is an
+  unrecognized path.
+- **`prompts/` and `templates/` are exactly one level deep**, and no entry may
+  be dot-prefixed. `prompts/nested/brief.md.j2` is refused.
+- **There is no `fixtures/` directory.** Keep sample payloads outside the
+  bundle — inside it they fail the publish. (A bundle checked out from a live
+  channel has none; that is not an omission.)
+- **`code/<block>/` nests freely**, but the block name must be a slug
+  (`^[a-z0-9][a-z0-9_-]{0,62}$`), no segment below it may start with `.`
+  (`code/calc/.env` and a stray `code/calc/.git/` both refuse the tree), and
+  the block needs the runner's entrypoint — `main.py` or `index.js`.
+
+Two things about the subdirectories that are easy to get backwards:
+
+- **`prompts/` and `templates/` are seeded into channel config at install**,
+  and a flow reads the text from there, not from the file. The filename's
+  suffix is stripped to form the key — `briefing_recap.md.j2` →
+  `$channel.prompts.briefing_recap` — and `.md.j2`, `.md.jinja`, `.j2`,
+  `.jinja`, `.md` and `.txt` all strip. Pair the reference with
+  `prompt_format: jinja` when the file is a Jinja template.
+- **`code/` is not seeded.** The bytes stay in the bundle and
+  `foundation.code.execute` reads them by block name at run time, from the
+  version the run pinned.
+
+`strings.yaml` is client-facing UI copy, sectioned by locale (`en:` is the
+base). Its keys expand to `copy:<app_type>.<dotted.path>` scalars on install,
+and the `copy:` prefix is also a projection filter — only those scalars are
+exposed to the client, so agent prompts and other manifest scalars cannot leak
+through it. Slots you omit fall back to the client's generic defaults, so a
+partial file is normal.
 
 Non-obvious things to get right the first time:
 
-- **Fixtures must be `.json`.** Any `.yaml` in the bundle is installed as a
-  flow.
 - **A manifest with no `app_type:` CLEARS the channel's app_type.** Only
   install an untyped bundle into a dedicated channel. Warn the user explicitly
   before the first install.
@@ -251,8 +294,7 @@ popcorn template check ./<app>           # does the bundle hold together?
 
 `flow validate` is the authority on any single reference. `template check` is
 offline and answers a different question — cross-file agreement, writes to
-undeclared columns, a schedule naming a flow that is not there, a fixture named
-`.yaml` that would install as a flow. Run both, and get them clean before
+undeclared columns, a schedule naming a flow that is not there. Run both, and get them clean before
 publishing: everything `template check` reports passes `flow validate` cleanly.
 
 ```bash
@@ -316,8 +358,11 @@ For webhook-fed bundles:
 
 ```bash
 popcorn webhook list <id>                          # copyable URL
-curl -X POST <url> -H 'Content-Type: application/json' -d @fixtures/sample.json
+curl -X POST <url> -H 'Content-Type: application/json' -d @../payloads/sample.json
 ```
+
+Keep those payloads outside the bundle directory — a `fixtures/` inside it is
+an unrecognized path and fails the publish.
 
 Posting the **same body twice does not test merge logic** — the webhook layer
 dedupes identical deliveries and no flow runs at all. Vary the body while
