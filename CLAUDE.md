@@ -69,7 +69,7 @@ popcorn-claude-code/
 - Routes agent to CLI (preferred) or MCP tools (fallback)
 - Installs CLI and MCP on first use via setup.sh
 - Command discovery via `popcorn commands`
-- MCP tool reference (whoami, get_channel, update_channel, post_message, read_messages, search, react)
+- MCP tool reference (whoami, get_channel, post_message, read_messages, search, react)
 - Behavioral constraints (quote channels, confirm before sending, JSON envelope parsing)
 - Capability boundary: resolve a `#name` against `channel list` / `app list`
   before answering, and read `flow activities` rather than the agent's own tool
