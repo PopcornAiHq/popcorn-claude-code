@@ -47,7 +47,7 @@ popcorn-claude-code/
 │   │   ├── SKILL.md       ← CLI + MCP routing, setup, guardrails (see "not always on")
 │   │   └── setup.sh       ← Deterministic setup: CLI install, auth, MCP
 │   └── template/
-│       └── SKILL.md       ← /popcorn:template — author a channel-template bundle
+│       └── SKILL.md       ← /popcorn:bundle — edit and publish a channel's app bundle
 ├── .claude-plugin/
 │   ├── plugin.json         ← Plugin manifest
 │   └── marketplace.json    ← Marketplace listing
@@ -104,9 +104,25 @@ The rule that survives both changes: if something must hold before the skill is
 invoked, it goes in the `description`; anything that only matters once the agent
 is already working on Popcorn belongs in the body.
 
+### Why the skill is `bundle` and not `template`
+
+`template` collided four ways inside the skill itself: the `templates/`
+subdirectory of Jinja bodies, the prompt templates in `prompts/`, the
+`template:` key inside flow YAML, and "channel template" for the whole thing.
+It also named the loop after its smallest step — `app fork`, `app checkout` and
+`app publish` are three `app` commands against one `template check`.
+
+`bundle` was chosen over `app` because of the flag below. `disable-model-invocation`
+keeps the description out of the model's listing entirely, so the name is read
+only by a person scanning the slash-command picker. That rules out matching the
+CLI's internal vocabulary for its own sake: nobody types `/popcorn:app` and
+knows what they will get. The description is the surface that sells the command
+to a user, so it leads with the outcome — change what a channel tracks — rather
+than with the artifact.
+
 ### `disable-model-invocation: true` is real, and it is not prose
 
-On `template`, the one user-triggered skill left. Unlike `alwaysApply`, this one is
+On `bundle`, the one user-triggered skill left. Unlike `alwaysApply`, this one is
 implemented, and the check that separates the two is worth repeating before
 anyone adds a third field: **read it out of the installed binary, not out of a
 doc that might describe a different product.** `claude plugin validate --strict`
@@ -130,22 +146,24 @@ What the runtime actually does with the flag:
 
 That last point cuts wider than "the model won't auto-invoke": a **nested** skill
 invocation is also refused, since it is a Skill-tool call the user did not type.
-Nothing in this plugin nests `template` — the popcorn skill works the bundle
-loop in-line rather than routing to a skill — so there is no path to break. Anything added later that wants to call it from another skill
-will not be able to.
+Nothing in this plugin nests `bundle` — the popcorn skill works the bundle
+loop in-line rather than routing to a skill — so there is no path to break.
+Anything added later that wants to call it from another skill will not be able
+to.
 
 The authoring eval runs are the evidence. Across three runs, including
 one that checked out and published a bundle, the body of the popcorn skill never
 loaded once: `setup.sh` appears in those transcripts only inside the
-`/popcorn:template` body after that skill was explicitly invoked. Everything
+`/popcorn:bundle` body after that skill was explicitly invoked. Everything
 this file described as always-on — setup, routing, the `#channel` quoting rule,
 the JSON-envelope rule — was invisible in every run. Adding guidance to that
 body changed no behaviour at all; moving the trigger conditions into the
 description changed it completely, which is why the description is now long.
 
-**/popcorn:template** (slash command, user-triggered):
-- Authors a channel-template bundle: manifest (tables/schedules/webhooks) plus
-  one YAML file per flow
+**/popcorn:bundle** (slash command, user-triggered):
+- Edits a channel's app bundle: manifest (tables/schedules/webhooks), one YAML
+  file per flow, `strings.yaml`, and the `prompts/`, `templates/` and `code/`
+  subdirectories
 - Drives the `app fork` → `checkout` → edit → `template check` → `app publish`
   loop, which needs no backend deploy
 - **Scope is editing an app that already exists.** Creating a new `app_type`

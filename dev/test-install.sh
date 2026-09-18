@@ -44,7 +44,7 @@ This is a throwaway project for testing the popcorn-claude-code plugin.
 1. Install the plugin (see prompt below)
 2. Verify the `popcorn` skill body loads when a request triggers it — ask
    something naming a `#channel`, not just whether the skill is listed
-3. Test the `/popcorn:template` slash command
+3. Test the `/popcorn:bundle` slash command
 4. Verify CLI install prompt triggers on first use
 PROJ_MD
 
@@ -68,7 +68,7 @@ echo -e "${BOLD}▶ Step 2: Verify${RESET}"
 echo ""
 echo "    - Ask something naming a #channel. Does the popcorn skill BODY load?"
 echo "      (Its description is always listed — that alone proves nothing.)"
-echo "    - Does /popcorn:template load?"
+echo "    - Does /popcorn:bundle load?"
 echo ""
 echo -e "${DIM}Exit Claude Code to trigger cleanup.${RESET}"
 echo ""

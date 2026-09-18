@@ -70,7 +70,7 @@ names the app version and channel it came from — so an edit to a file in it
 has changed nothing the channel runs until
 `template check` and `app publish` have gone through. Use those
 commands directly when the user asks for a change to what a channel does;
-`/popcorn:template` covers the same ground in more depth but is user-triggered,
+`/popcorn:bundle` covers the same ground in more depth but is user-triggered,
 so never invoke or suggest it.
 
 ### Finish the loop — do not end on a question nobody can answer
@@ -93,7 +93,7 @@ consequences someone might want to weigh" is not a blocker — it is a line in
 the result.
 
 Interactive sessions are the other half of this: say what a fork or publish
-changes *before* running it, then run it. `skills/template/SKILL.md` carries
+changes *before* running it, then run it. `skills/bundle/SKILL.md` carries
 the full version of this rule with the observed failures quoted; this copy
 exists because that skill is user-triggered and unreachable from here.
 

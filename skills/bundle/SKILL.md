@@ -1,11 +1,11 @@
 ---
-name: template
-description: Author, validate, publish and debug a Popcorn channel-template bundle (tables + flows + schedules + webhooks) using the popcorn CLI — the app fork/checkout/publish loop for an app that already exists.
+name: bundle
+description: Change what a Popcorn channel tracks — its tables, flows, schedules, webhooks, prompts and code. Forks the app bundle, checks it out as editable files, then validates and publishes. For an app the channel already runs; requires the popcorn CLI.
 allowed-tools: Bash, Read, Write, Edit, Glob, Grep
 disable-model-invocation: true
 ---
 
-# /popcorn:template — Author a channel template
+# /popcorn:bundle — Change what a channel tracks
 
 A **channel template** turns an empty Popcorn channel into an application: a
 manifest declaring tables/schedules/webhooks, plus one YAML file per flow.
