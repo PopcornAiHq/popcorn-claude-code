@@ -1,6 +1,6 @@
 # CLAUDE.md — popcorn-claude-code
 
-Popcorn messaging plugin for Claude Code.
+Popcorn plugin for Claude Code — read channels and change what they track.
 
 ## This repository is public
 

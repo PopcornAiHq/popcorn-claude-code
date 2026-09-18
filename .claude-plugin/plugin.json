@@ -1,7 +1,7 @@
 {
   "name": "popcorn",
-  "description": "Popcorn messaging integration for Claude Code",
-  "version": "0.18.1",
+  "description": "Work on your Popcorn trackers from Claude Code",
+  "version": "0.18.2",
   "author": {
     "name": "Popcorn",
     "email": "support@popcorn.ai"
@@ -9,8 +9,8 @@
   "repository": "https://github.com/PopcornAiHq/popcorn-claude-code",
   "license": "MIT",
   "keywords": [
-    "messaging",
     "popcorn",
-    "communication"
+    "tracker",
+    "automation"
   ]
 }
