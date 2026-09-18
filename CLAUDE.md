@@ -46,7 +46,7 @@ popcorn-claude-code/
 │   ├── popcorn/
 │   │   ├── SKILL.md       ← CLI + MCP routing, setup, guardrails (see "not always on")
 │   │   └── setup.sh       ← Deterministic setup: CLI install, auth, MCP
-│   └── template/
+│   └── bundle/
 │       └── SKILL.md       ← /popcorn:bundle — edit and publish a channel's app bundle
 ├── .claude-plugin/
 │   ├── plugin.json         ← Plugin manifest
