@@ -25,7 +25,7 @@ In Claude Code:
 ## What's Included
 
 - **popcorn** skill — loads from what you ask for: a `#channel`, a tracker, or a change to what a channel tracks. Sets up CLI + MCP, routes commands, and keeps the agent honest about what Popcorn can and can't do.
-- `/popcorn:template` — author, validate, publish and debug a channel template: the `app fork` → `checkout` → edit → `template check` → `app publish` loop. Requires the CLI; the MCP path cannot publish bundles.
+- `/popcorn:bundle` — change what a channel tracks: fork the app bundle, check it out as editable files, then validate and publish. Runs the `app fork` → `checkout` → edit → `template check` → `app publish` loop. Requires the CLI; the MCP path cannot publish bundles.
 
 ## CLI vs MCP
 
