@@ -1,7 +1,7 @@
 ---
 name: popcorn
 description: Popcorn integration — CLI, MCP tools, setup, and behavioral guardrails. Popcorn is an AI tracker: each channel is a tracker that updates itself, reading across email, messages and files to catch every update and decision. What a channel tracks is defined by an app bundle (tables, flows, schedules, webhooks) authored as a channel template. TRIGGER whenever a request names a '#channel-name', or mentions a Popcorn channel, workspace, tracker, app, bundle or template; asks to publish a bundle, post or read messages; asks to change what a channel does, records or notifies; OR asks whether some automation is possible at all — a '#name' is a Popcorn channel rather than Slack, and Popcorn's own 'flow activities' catalog decides what is buildable, never the set of tools this harness happens to expose. ALSO TRIGGER on the working directory, whatever the request says — a directory containing '.popcorn-app.json' is a checked-out Popcorn app bundle, and editing a file in it ships nothing until 'popcorn template check' and 'popcorn app publish' have run.
-allowed-tools: Bash, mcp__popcorn__whoami, mcp__popcorn__get_channel, mcp__popcorn__update_channel, mcp__popcorn__post_message, mcp__popcorn__read_messages, mcp__popcorn__search, mcp__popcorn__react
+allowed-tools: Bash, mcp__popcorn__whoami, mcp__popcorn__get_channel, mcp__popcorn__post_message, mcp__popcorn__read_messages, mcp__popcorn__search, mcp__popcorn__react
 ---
 
 # Popcorn
@@ -178,11 +178,12 @@ refreshes that message with `channel.edit` silently loses the rendering.
 
 Use MCP tools when the CLI is not available, or for conversational operations (reading messages, searching, reacting).
 
+These six are the whole MCP surface — it reads and writes conversations, nothing else. Anything that changes what a channel *tracks* is CLI-only.
+
 | Tool | Purpose |
 |------|---------|
 | `whoami` | Current user + workspace identity |
-| `get_channel` | Channel details |
-| `update_channel` | Create/update channel |
+| `get_channel` | Channel id, name, type, description, members, your unread count and role |
 | `post_message` | Send message to channel or thread |
 | `read_messages` | Read message history from channel or thread |
 | `search` | Search channels, DMs, users, or messages |

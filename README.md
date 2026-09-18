@@ -35,7 +35,7 @@ This plugin works with either transport:
 |---|---|---|
 | Install | Auto-installed on first use | Auto-configured on first use |
 | Updates | Auto-updates itself (or `popcorn upgrade`) | Server-side (transparent) |
-| Features | Full (30+ commands) | 7 tools (channels, messages, search) |
+| Features | Full (30+ commands) | 6 tools (conversations only) |
 | Context usage | Minimal (runs in shell) | Higher (MCP tool calls) |
 | Recommended | Yes — preferred for all operations | Always available for conversational features |
 
