@@ -1,6 +1,15 @@
 # popcorn-claude-code
 
-Popcorn messaging plugin for [Claude Code](https://claude.ai/code).
+Work on your Popcorn trackers from [Claude Code](https://claude.ai/code).
+
+[Popcorn](https://www.popcorn.ai/) is an AI tracker — it reads across email,
+messages and files, catching every update and decision, and updates itself
+rather than waiting for someone to maintain it. Each channel is one tracker.
+
+What a channel tracks is defined by an **app bundle**: tables holding what it
+keeps, flows doing the updating, schedules and webhooks catching updates as they
+arrive, and an `AGENT.md` shaping how it talks. This plugin lets Claude Code read
+and change that bundle.
 
 ## Install
 
@@ -15,8 +24,8 @@ In Claude Code:
 
 ## What's Included
 
-- **popcorn** skill — Popcorn integration, triggered by what you ask for: a `#channel`, a tracker, or a change to what a channel tracks. Sets up CLI + MCP, provides command routing and guardrails.
-- `/popcorn:template` — author, validate, install and debug a channel template (tables + flows + schedules + webhooks). Requires the CLI; the MCP path cannot import bundles.
+- **popcorn** skill — loads from what you ask for: a `#channel`, a tracker, or a change to what a channel tracks. Sets up CLI + MCP, routes commands, and keeps the agent honest about what Popcorn can and can't do.
+- `/popcorn:template` — author, validate, publish and debug a channel template: the `app fork` → `checkout` → edit → `template check` → `app publish` loop. Requires the CLI; the MCP path cannot publish bundles.
 
 ## CLI vs MCP
 
@@ -26,7 +35,7 @@ This plugin works with either transport:
 |---|---|---|
 | Install | Auto-installed on first use | Auto-configured on first use |
 | Updates | Auto-updates itself (or `popcorn upgrade`) | Server-side (transparent) |
-| Features | Full (30+ commands) | 7 tools (messaging, channels) |
+| Features | Full (30+ commands) | 7 tools (channels, messages, search) |
 | Context usage | Minimal (runs in shell) | Higher (MCP tool calls) |
 | Recommended | Yes — preferred for all operations | Always available for conversational features |
 

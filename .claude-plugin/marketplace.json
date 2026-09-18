@@ -5,16 +5,16 @@
     "email": "support@popcorn.ai"
   },
   "metadata": {
-    "description": "Popcorn messaging integration for Claude Code",
-    "version": "0.18.1"
+    "description": "Work on your Popcorn trackers from Claude Code",
+    "version": "0.18.2"
   },
   "plugins": [
     {
       "name": "popcorn",
       "source": "./",
-      "description": "Popcorn — read channels, send updates, and build channel apps",
+      "description": "Read channels, send updates, and change what your trackers track",
       "author": { "name": "Popcorn" },
-      "keywords": ["messaging", "popcorn", "communication"],
+      "keywords": ["popcorn", "tracker", "automation"],
       "category": "productivity"
     }
   ]
