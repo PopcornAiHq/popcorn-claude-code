@@ -6,13 +6,13 @@
   },
   "metadata": {
     "description": "Popcorn messaging integration for Claude Code",
-    "version": "0.18.0"
+    "version": "0.18.1"
   },
   "plugins": [
     {
       "name": "popcorn",
       "source": "./",
-      "description": "Popcorn messaging — read channels, send updates, and publish projects",
+      "description": "Popcorn — read channels, send updates, and build channel apps",
       "author": { "name": "Popcorn" },
       "keywords": ["messaging", "popcorn", "communication"],
       "category": "productivity"

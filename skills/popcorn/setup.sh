@@ -85,7 +85,7 @@ if [ "$CLI" = true ]; then
   fi
 fi
 
-# Step 3: MCP (always, user-scope — CLI handles deploys, MCP enables conversational features)
+# Step 3: MCP (always, user-scope — CLI is the primary path, MCP enables conversational features)
 if claude mcp list 2>/dev/null | grep -q 'popcorn'; then
   MCP=true
   echo -e "${DIM}MCP: configured${RESET}"

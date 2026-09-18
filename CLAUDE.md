@@ -130,9 +130,8 @@ What the runtime actually does with the flag:
 
 That last point cuts wider than "the model won't auto-invoke": a **nested** skill
 invocation is also refused, since it is a Skill-tool call the user did not type.
-Nothing in this plugin nests `template` — the popcorn skill handles deploys,
-exports and message reads in-line rather than routing to a skill — so there is
-no path to break. Anything added later that wants to call it from another skill
+Nothing in this plugin nests `template` — the popcorn skill works the bundle
+loop in-line rather than routing to a skill — so there is no path to break. Anything added later that wants to call it from another skill
 will not be able to.
 
 The authoring eval runs are the evidence. Across three runs, including
@@ -162,7 +161,7 @@ description changed it completely, which is why the description is now long.
 
 This plugin has no code dependencies. It provides skills that guide the agent to use either:
 - **popcorn-cli** (auto-installed on first use via uv/pipx/pip) — full-featured CLI, preferred in terminal
-- **Popcorn MCP server** (`https://mcp.popcorn.ai/mcp`) — always installed, enables conversational features and deploy fallback
+- **Popcorn MCP server** (`https://mcp.popcorn.ai/mcp`) — always installed, enables conversational features
 
 ## Versioning
 
