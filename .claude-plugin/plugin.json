@@ -1,7 +1,7 @@
 {
   "name": "popcorn",
   "description": "Work on your Popcorn trackers from Claude Code",
-  "version": "0.19.1",
+  "version": "0.19.2",
   "author": {
     "name": "Popcorn",
     "email": "support@popcorn.ai"
