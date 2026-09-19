@@ -204,28 +204,41 @@ mytemplate/
 └── code/<block>/            custom code, run by `foundation.code.execute`
 ```
 
-**Every path in the tree must be one of those, or `app publish` refuses the
-bundle.** It does not ignore a stray file — an unrecognized path would mint a
-version whose digest covers bytes the installer never reads, so the publish is
-rejected outright.
+**A path outside that tree does not reach the channel, and mostly nothing
+stops you.** Only one shape of misplacement is refused; the rest publish green
+and arrive incomplete:
 
-**`template check` will not catch this.** It reports a tree carrying
-`fixtures/sample.json` and `notes.txt` as clean, with no error and no warning,
-and the publish then refuses it. Path placement is the one part of the bundle
-you have to get right by reading rather than by running the checker, which is
-why the rules are spelled out here:
+| Misplaced path | What you are told | What `app publish` does |
+|---|---|---|
+| `fixtures/`, `notes.txt`, `flows/claim_tick.yaml`, `prompts/nested/` | `template check` warns `path-not-published`; `app status` and `app publish` print `Not installable, so not published: …` | **Succeeds**, without that path |
+| `code/loose.py`, `code/Calc/main.py` | `app status` warns in the same words | **Refused**: `Not readable as block source` |
+| anything dot-prefixed — `code/calc/.env`, a stray `code/calc/.git/` | nothing at all | **Succeeds**, path skipped |
+
+The first row is the one that bites. `flows/claim_tick.yaml` is a plausible
+wrong guess at the layout, and it publishes green while the flow never reaches
+the channel — a refusal would have been kinder. So **read the warnings, not
+the exit status**: `path-not-published` is a warning, so a tree carrying
+nothing worse still exits 0. `--strict` (Step 4) is what turns it into a
+failure.
+
+The third row is intentional, not a gap — a `.env` beside your block source is
+skipped precisely so it cannot ship. Just do not expect a dotfile to publish.
+
+The layout rules behind that table:
 
 - **Flows live at the root.** `flows/claim_tick.yaml` is not a flow, it is an
   unrecognized path.
 - **`prompts/` and `templates/` are exactly one level deep**, and no entry may
-  be dot-prefixed. `prompts/nested/brief.md.j2` is refused.
+  be dot-prefixed. `prompts/nested/brief.md.j2` publishes nothing, and the
+  warning names the directory — `prompts/nested/` — not the file you wrote.
 - **There is no `fixtures/` directory.** Keep sample payloads outside the
-  bundle — inside it they fail the publish. (A bundle checked out from a live
-  channel has none; that is not an omission.)
+  bundle — inside it they never reach the channel. (A bundle checked out from
+  a live channel has none; that is not an omission.)
 - **`code/<block>/` nests freely**, but the block name must be a slug
-  (`^[a-z0-9][a-z0-9_-]{0,62}$`), no segment below it may start with `.`
-  (`code/calc/.env` and a stray `code/calc/.git/` both refuse the tree), and
-  the block needs the runner's entrypoint — `main.py` or `index.js`.
+  (`^[a-z0-9][a-z0-9_-]{0,62}$`), and the block needs the runner's entrypoint
+  — `main.py` or `index.js`. A file directly under `code/`, or a block name
+  that is not a slug, is the one misplacement that refuses the publish
+  outright rather than shipping short.
 
 Two things about the subdirectories that are easy to get backwards:
 
@@ -362,7 +375,8 @@ curl -X POST <url> -H 'Content-Type: application/json' -d @../payloads/sample.js
 ```
 
 Keep those payloads outside the bundle directory — a `fixtures/` inside it is
-an unrecognized path and fails the publish.
+an unrecognized path, so publish leaves it behind and the channel never sees
+it.
 
 Posting the **same body twice does not test merge logic** — the webhook layer
 dedupes identical deliveries and no flow runs at all. Vary the body while
