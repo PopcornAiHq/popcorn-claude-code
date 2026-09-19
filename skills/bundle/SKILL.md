@@ -210,7 +210,7 @@ and arrive incomplete:
 
 | Misplaced path | What you are told | What `app publish` does |
 |---|---|---|
-| `fixtures/`, `notes.txt`, `flows/claim_tick.yaml`, `prompts/nested/brief.md.j2` | `template check` warns `path-not-published`; `app status` and `app publish` print `Not installable, so not published: …` | **Succeeds**, without that path |
+| `fixtures/`, `notes.txt`, `flows/claim_tick.yaml`, `prompts/nested/` | `template check` warns `path-not-published`; `app status` and `app publish` print `Not installable, so not published: …` | **Succeeds**, without that path |
 | `code/loose.py`, `code/Calc/main.py` | `app status` warns in the same words | **Refused**: `Not readable as block source` |
 | anything dot-prefixed — `code/calc/.env`, a stray `code/calc/.git/` | nothing at all | **Succeeds**, path skipped |
 
@@ -229,7 +229,8 @@ The layout rules behind that table:
 - **Flows live at the root.** `flows/claim_tick.yaml` is not a flow, it is an
   unrecognized path.
 - **`prompts/` and `templates/` are exactly one level deep**, and no entry may
-  be dot-prefixed. `prompts/nested/brief.md.j2` publishes nothing.
+  be dot-prefixed. `prompts/nested/brief.md.j2` publishes nothing, and the
+  warning names the directory — `prompts/nested/` — not the file you wrote.
 - **There is no `fixtures/` directory.** Keep sample payloads outside the
   bundle — inside it they never reach the channel. (A bundle checked out from
   a live channel has none; that is not an omission.)
