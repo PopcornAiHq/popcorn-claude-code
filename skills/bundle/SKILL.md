@@ -155,14 +155,17 @@ later, at runtime, in production.
 Ask what the template should do if it is not clear — what state it holds, what
 triggers it (webhook / schedule / agent / message), what it posts.
 
-Then **read the authoring guide before writing YAML**. If the user has
-popcorn-cli checked out it is at `docs/TEMPLATE_AUTHORING.md`. Otherwise fetch
-the **raw** URL — the `blob/` one serves rendered HTML, and a fetch of it comes
-back summarised rather than complete:
+Then **read the authoring guide before writing YAML**. Fetch the Markdown from
+the docs site — it is served as `text/markdown`, so it arrives whole rather
+than summarised the way a rendered page does:
 
 ```
-https://raw.githubusercontent.com/PopcornAiHq/popcorn-cli/main/docs/TEMPLATE_AUTHORING.md
+https://docs.popcorn.ai/guides/template-authoring.md
 ```
+
+This is the canonical copy. `docs/TEMPLATE_AUTHORING.md` in a popcorn-cli
+checkout is now a pointer to this URL, not the guide, so read it from here
+whether or not the user has that repository.
 
 **There is no bundle in the repo to copy.** `examples/` holds fixtures and a
 findings log, not bundle source — the two bundles that used to live there moved
