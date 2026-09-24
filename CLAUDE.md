@@ -6,9 +6,9 @@ Popcorn plugin for Claude Code — read channels and change what they track.
 
 `PopcornAiHq/popcorn-claude-code` is public, and it ships to a marketplace —
 every reader of this tree is outside Popcorn. Internal-only references must not
-be written here: issue-tracker ids, the private sibling repos by name, symbols
-and deploy topology from the private backend, real workspace or channel ids, and
-employee email addresses.
+be written here: issue-tracker ids (in tracked files — see below), the private
+sibling repos by name, symbols and deploy topology from the private backend,
+real workspace or channel ids, and employee email addresses.
 
 **Cite behaviour, never the thing that proves it.** "Creating a new app type is
 a server-side change with its own review" belongs here; the backend symbol it is
@@ -19,8 +19,8 @@ Ids in examples are placeholders, never copied from a live system:
 `<conversation-id>`, `<workspace-id>`, `my-workspace`, `#my-app`.
 
 This cuts directly against the conventions of the private repos next door, which
-encourage citing `KEW-NNNN`, PR numbers and source paths as durable references.
-That is correct there. Do not carry it across a `cd`. `popcorn-cli` is the one
+encourage citing `KEW-NNNN`, PR numbers and source paths as durable references in
+code and docs. That is correct there. Do not carry it across a `cd`. `popcorn-cli` is the one
 sibling that is itself public, so a link into it resolves for a reader and is
 fine.
 
@@ -28,6 +28,16 @@ fine.
 as its own CI job, and as `make check`. It catches an id, a repo name or a
 symbol; it cannot catch a paragraph that describes internal architecture, so the
 judgement above is still yours.
+
+**Ticket ids may go in commit messages and pull requests.** A Linear id is
+allowed in a commit message, a PR title or description, and a branch name —
+that is what Linear's GitHub integration reads to link and close the issue,
+and a bare id discloses nothing the change itself does not. Every other
+category above still applies there. To close the issue when the PR merges, put
+a closing magic word and the id in the **PR description** — `Fixes KEW-NNNN`
+(`closes`, `resolves`, `completes`, `implements` work too); `Part of KEW-NNNN`
+or `Refs KEW-NNNN` links without closing. The script scans tracked files only,
+so it neither blocks nor checks messages.
 
 **Audit with `git ls-files`, not `ls`, `grep -r` or `find`.** Those walk
 gitignored scratch (`docs/` is ignored here) and over-report, in the direction
