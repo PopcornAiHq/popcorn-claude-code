@@ -87,6 +87,15 @@ created yourself rather than asking whether to. Quote the
 the blast radius in the abstract. **Finish on the summary of what changed,
 never on a question**, and state judgement calls as decisions taken.
 
+```bash
+POPCORN_AGENT=1 popcorn app publish ./<app> --bump patch -m "what changed" --yes
+```
+
+**Always pass `--yes` to `app publish`.** Newer CLIs ask before publishing,
+and this shell cannot answer, so the question comes back as a refusal. On a
+CLI that does not ask, the flag does nothing. The rule above decides whether
+to publish; the flag only stops the CLI asking a question nobody can answer.
+
 Genuine blockers still stop you: `template check` failing, a fork you cannot
 create, a request needing an app type that does not exist. "This has
 consequences someone might want to weigh" is not a blocker — it is a line in
