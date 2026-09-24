@@ -169,7 +169,12 @@ description changed it completely, which is why the description is now long.
 - **Scope is editing an app that already exists.** Creating a new `app_type`
   is a server-side change; the skill hands that back rather than improvising a
   bundle nobody can install
-- CLI only — the MCP path cannot publish bundles. Requires popcorn-cli ≥ 0.20.0
+- CLI only — the MCP path cannot publish bundles. Requires popcorn-cli ≥ 0.52.0
+- **Does not teach the bundle format.** It points at docs.popcorn.ai
+  (`llms.txt`, the authoring guides, the concept pages) for layout, manifest
+  keys and flow grammar, and keeps only command routing, checks and the
+  ask-versus-act rule. A copy of the format here drifted from the platform and
+  was wrong in several places, so resist adding one back
 - Publishes on its own authority when nothing is reading its output mid-task
   (`claude -p`, `POPCORN_AGENT=1`), reporting blast radius from
   `other_channels_converging` rather than asking permission of nobody. The

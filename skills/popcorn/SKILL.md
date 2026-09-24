@@ -1,6 +1,6 @@
 ---
 name: popcorn
-description: Popcorn integration — CLI, MCP tools, setup, and behavioral guardrails. Popcorn is an AI tracker: each channel is a tracker that updates itself, reading across email, messages and files to catch every update and decision. What a channel tracks is defined by an app bundle (tables, flows, schedules, webhooks) authored as a channel template. TRIGGER whenever a request names a '#channel-name', or mentions a Popcorn channel, workspace, tracker, app, bundle or template; asks to publish a bundle, post or read messages; asks to change what a channel does, records or notifies; OR asks whether some automation is possible at all — a '#name' is a Popcorn channel rather than Slack, and Popcorn's own 'flow activities' catalog decides what is buildable, never the set of tools this harness happens to expose. ALSO TRIGGER on the working directory, whatever the request says — a directory containing '.popcorn-app.json' is a checked-out Popcorn app bundle, and editing a file in it ships nothing until 'popcorn template check' and 'popcorn app publish' have run.
+description: "Popcorn integration — CLI, MCP tools, setup, and behavioral guardrails. Popcorn is an AI tracker: each channel is a tracker that updates itself, reading across email, messages and files to catch every update and decision. What a channel tracks is defined by an app bundle (tables, flows, schedules, webhooks) authored as a channel template. TRIGGER whenever a request names a '#channel-name', or mentions a Popcorn channel, workspace, tracker, app, bundle or template; asks to publish a bundle, post or read messages; asks to change what a channel does, records or notifies; OR asks whether some automation is possible at all — a '#name' is a Popcorn channel rather than Slack, and Popcorn's own 'flow activities' catalog decides what is buildable, never the set of tools this harness happens to expose. ALSO TRIGGER on the working directory, whatever the request says — a directory containing '.popcorn-app.json' is a checked-out Popcorn app bundle, and editing a file in it ships nothing until 'popcorn template check' and 'popcorn app publish' have run."
 allowed-tools: Bash, mcp__popcorn__whoami, mcp__popcorn__get_channel, mcp__popcorn__post_message, mcp__popcorn__read_messages, mcp__popcorn__search, mcp__popcorn__react
 ---
 
@@ -86,6 +86,15 @@ created yourself rather than asking whether to. Quote the
 `other_channels_converging` count `app publish` returns instead of describing
 the blast radius in the abstract. **Finish on the summary of what changed,
 never on a question**, and state judgement calls as decisions taken.
+
+```bash
+POPCORN_AGENT=1 popcorn app publish ./<app> --bump patch -m "what changed" --yes
+```
+
+**Always pass `--yes` to `app publish`.** Newer CLIs ask before publishing,
+and this shell cannot answer, so the question comes back as a refusal. On a
+CLI that does not ask, the flag does nothing. The rule above decides whether
+to publish; the flag only stops the CLI asking a question nobody can answer.
 
 Genuine blockers still stop you: `template check` failing, a fork you cannot
 create, a request needing an app type that does not exist. "This has
