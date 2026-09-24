@@ -7,11 +7,17 @@ disable-model-invocation: true
 
 # /popcorn:bundle — Change what a channel tracks
 
-A **channel template** turns an empty Popcorn channel into an application: a
-manifest declaring tables/schedules/webhooks, plus one YAML file per flow.
-This skill drives the whole loop — check out, edit, validate, publish, run,
-inspect, fix. Editing an app that exists needs no backend deploy; creating a
-brand-new app type does, and is out of scope (see Scope).
+An **app bundle** is what makes a channel a tracker: a manifest declaring
+tables, schedules and webhooks, one YAML file per flow, and the prompts, copy
+and code those flows use. This skill drives the loop that changes one —
+check out, edit, validate, publish, run, inspect, fix. Editing an app that
+exists needs no backend deploy. Creating a brand-new app type does, and is out
+of scope (see Scope).
+
+**This skill does not teach the bundle format.** docs.popcorn.ai does, and it
+is kept in step with the platform; a restatement here would drift from it.
+What lives here is the part the docs cannot own: which command to run when,
+what to check before trusting a result, and when to ask the user versus act.
 
 ## Step 0: Ensure the CLI is ready
 
@@ -27,73 +33,136 @@ If either is false, stop and tell the user what failed.
 
 **Prefix every command in this skill with `POPCORN_AGENT=1`.** It injects
 `--json`, `--quiet` and `--no-color`. Without it the CLI prints for humans, and
-the `.data.*` fields this skill tells you to read are not there to read.
+the `.data.*` fields this skill tells you to read are not there to read. The
+commands below leave the prefix off for readability; add it anyway.
 
 ```bash
-POPCORN_AGENT=1 popcorn app list --channel '#chan'
+POPCORN_AGENT=1 popcorn --version
 ```
 
-Then confirm the CLI is recent enough to have the authoring commands:
+This skill is written against popcorn-cli **0.52.0 or later**. On anything
+older, tell the user to run `popcorn upgrade` and stop.
+
+## Where the authoring rules live
+
+**Read these before writing YAML**, and prefer them to anything you remember.
+Every page is served as `text/markdown`, so `curl -s <url>` brings it whole —
+a fetch tool that summarises pages drops exactly the details that matter:
+
+| Need | Read |
+|---|---|
+| Index of every page, one paragraph each | `https://docs.popcorn.ai/llms.txt` |
+| The whole authoring loop: bundle layout, manifest keys, flow grammar, tables, traps | `https://docs.popcorn.ai/guides/template-authoring.md` |
+| A bundle's `states:` section | `https://docs.popcorn.ai/guides/states-authoring.md` |
+| What install does to each manifest key | `https://docs.popcorn.ai/concepts/manifest-keys.md` |
+| Where a value belongs: `scalars:`, `default_scalars:`, or neither | `https://docs.popcorn.ai/concepts/scalar-tiers.md` |
+| Fork lines, publish and apply, versions | `https://docs.popcorn.ai/concepts/fork-line.md`, `…/publish-and-apply.md`, `…/bundle-version.md` |
+| An activity's arguments and results | `https://docs.popcorn.ai/reference/activities.md` — and the CLI, below |
+
+`llms.txt` lists the rest of the concept pages. The guide says where it and the
+tools disagree, the tool is right — so treat a clash as a docs bug, not a reason
+to route around the check.
+
+**The server is the authority on activities, not your memory.** Never write an
+activity name, argument or output field from recall. Fetch them:
 
 ```bash
-popcorn flow --help
-popcorn app --help
+popcorn flow activities --tier foundation            # names + one-line docs
+popcorn flow activities --name <wire.name>           # one activity's schema
+popcorn flow validate <file>.yaml                    # is this reference real?
 ```
 
-`flow activities`, `flow validate`, `template check`, and the `app`
-family (`fork`, `checkout`, `publish`, `apply`, `status`) must all be present
-— popcorn-cli ≥ 0.20.0. If they are missing, tell the user to upgrade
-(`popcorn upgrade`) and stop.
+A hallucinated activity name fails at publish; a hallucinated *output field*
+often fails much later, at runtime, in production.
 
-**`popcorn flow import` no longer installs anything.** It survives only as a
-tombstone that prints where bundles come from now. If you find yourself
-reaching for it, you are on the wrong path — see "How a bundle actually gets
-installed" below.
+## Step 1: Understand the goal, then check out what exists
 
-## How a bundle actually gets installed
-
-Two paths, and picking the wrong one wastes the session.
-
-**Editing an app that already exists — the CLI loop.** This is almost always
-what the user wants, and it needs no deploy:
+Ask what the change should do if it is not clear — what state it holds, what
+triggers it (webhook / schedule / agent / message), what it posts.
 
 ```bash
 popcorn app list --channel '#chan'      # .data.channel = what THIS channel runs
+popcorn app lines                       # this workspace's fork lines
 popcorn app fork --channel '#chan'      # this workspace's own fork line
-popcorn app checkout --channel '#chan'  # the bound version, as editable files
-# ... edit, and BUMP version: in manifest.yaml
-popcorn template check ./<app>
-popcorn app publish ./<app> --changelog "what changed"
-popcorn app status ./<app>              # has the install landed?
+popcorn app checkout --channel '#chan'  # the fork line's head, as editable files
 ```
 
-`.data.channel` from that first command is the binding — `null` means the
-channel runs no bundle at all, and nothing to fork. `.data.apps` beside it is
-every app available to the workspace's release track, which is a different
-question and a long list either way.
+`.data.channel` from `app list` is the binding — `null` means the channel runs
+no bundle at all, and there is nothing to fork. `.data.apps` beside it is every
+app the workspace's release track can see, which is a different question.
+`app list` and `app lines` both work without `--channel` when all you need is
+the workspace view.
 
-`fork` first, always: a publish lands on a fork line the workspace **owns**, so
-publishing from a channel still bound to the shared product version is refused.
-Tell the user what forking means before you run it — their channel stops
-tracking the product line and starts tracking their own.
+**If an app the user says exists is missing from `app list`, suspect release
+tracks first** — an app released only to alpha is invisible to a stable
+workspace, and the API deliberately says nothing about why. Ask; do not debug.
 
-**Creating a new app type — a server-side change, not this skill.** A
-genuinely new `app_type` has to be registered and released on the server before
-any channel can install it. There is no client-side path. If that is what the
-user needs, say so plainly and stop rather than improvising.
+**Fork first, and say what it means before you run it** (interactive sessions):
+the channel stops tracking the shared product line and starts tracking the
+workspace's own, it no longer picks up product updates the way it did, and a
+fork line cannot be deleted. A publish is refused from a channel still on the
+product version, so there is no way round this step.
 
-Three things to say about a publish:
+A bare `app fork` adopts the workspace's existing line when there is exactly
+one, and asks first. Through Bash that question cannot be answered, so it comes
+back as `Refusing to prompt in non-interactive mode`, after a line on stderr
+naming the line it would adopt. Tell the user which line that is, then rerun
+with `--name '<line>'`. `app lines` shows the candidates up front.
 
-- **`version:` in `manifest.yaml` must advance every publish.** The CLI refuses
-  a reused or lower number locally.
-- **A publish is not scoped to the channel you tested on.** Every other channel
-  on the same fork line catches up on its own nightly auto-update tick.
-  `app publish` reports `other_channels_converging` — the count of channels
-  besides this one that the publish reaches. Read it and quote the number
-  rather than describing the risk in the abstract; `0` means nobody else is
-  affected, and saying so is more useful than a warning.
-- **One fork line per (workspace, app)** — no parallel experiments without
-  `app fork --name <line>`.
+**The worked example is the checkout.** `app checkout` hands you the real,
+complete bundle at the head of the channel's fork line, comments and all. It is
+more current than any file in any repo — do not go looking for a reference copy
+of a bundle elsewhere first. Read the files you are about to change before
+changing them.
+
+**Do not scaffold a bundle for a channel that already runs one.** Check it out
+and edit the real thing, so the diff is against what is installed.
+
+Before the first install of a bundle with no `app_type:` in its manifest, warn
+the user explicitly: an untyped manifest clears the channel's app type. Only
+install one into a dedicated channel.
+
+## Step 2: Edit, then validate offline
+
+Two checks, neither subsuming the other. Run both and get them clean before
+publishing:
+
+```bash
+popcorn flow validate .                  # every flow — are the references real?
+popcorn template check ./<app> --strict  # does the bundle hold together?
+```
+
+Inside a checkout both take the channel from the baseline; elsewhere pass
+`--channel <id>` to `flow validate`.
+
+**Read the warnings, not the exit status.** A path the format does not
+recognise — a `fixtures/` directory, a flow under `flows/`, a nested prompt —
+is a `path-not-published` *warning*, so a plain `template check` exits 0 and
+`app publish` then succeeds without that path. `--strict` is what turns it
+into a failure, which is why it is the form above.
+
+## Step 3: Publish
+
+```bash
+popcorn app publish ./<app> --bump patch -m "what changed" --yes
+popcorn app status ./<app>               # has the install landed?
+```
+
+- **`version:` must advance every publish.** `--bump patch|minor|major` writes
+  it for you, off the fork line's head, only once the publish is accepted.
+  Editing `version:` by hand also works; do one or the other, not both.
+- **`--yes` is there because the CLI cannot prompt through Bash.** The decision
+  to publish is yours to make under the rule below — the flag only stops the
+  CLI from refusing a question nobody can answer.
+- **A publish is not scoped to the channel you tested on.** Every other
+  channel on the same fork line catches up on its own. `app publish` reports
+  `other_channels_converging` — the count of channels besides this one that it
+  reaches. Quote the number rather than describing the risk in the abstract;
+  `0` means nobody else is affected, and saying so is more useful than a
+  warning.
+- **If `app status` says the channel is still behind, wait — do not
+  re-publish.** The install converges on its own. `app apply` is the retry for
+  an install that did not land, not a step in the loop.
 
 ### Whether to ask, when nobody is there to answer
 
@@ -129,220 +198,16 @@ create, a request that needs an app type that does not exist. But "this has
 consequences someone might want to weigh" is not a blocker — it is a line in
 the result.
 
-If an app the user says exists is missing from `app list`, suspect **release
-tracks** before anything else: the list is filtered to the workspace's track
-(alpha/beta/stable, default stable), an app released only to alpha is invisible
-to a stable workspace, and the API deliberately says nothing about why. Ask;
-do not debug.
+## Step 4: Check the wiring, then actually run it
 
-## The rule that matters most
-
-**The server is the authority, not your memory.** Never write an activity
-name, argument, or output field from recall. Fetch them:
-
-```bash
-popcorn flow activities --tier foundation            # names + one-line docs
-popcorn flow activities --json                       # full arg/result schemas
-popcorn flow validate <file>.yaml --channel <id>     # is this reference real?
-```
-
-If you are unsure whether something exists, run the command. A hallucinated
-activity name fails at install; a hallucinated *output field* often fails much
-later, at runtime, in production.
-
-## Step 1: Understand the goal, then read the guide
-
-Ask what the template should do if it is not clear — what state it holds, what
-triggers it (webhook / schedule / agent / message), what it posts.
-
-Then **read the authoring guide before writing YAML**. Fetch the Markdown from
-the docs site — it is served as `text/markdown`, so it arrives whole rather
-than summarised the way a rendered page does:
-
-```
-https://docs.popcorn.ai/guides/template-authoring.md
-```
-
-This is the canonical copy. `docs/TEMPLATE_AUTHORING.md` in a popcorn-cli
-checkout is now a pointer to this URL, not the guide, so read it from here
-whether or not the user has that repository.
-
-**There is no bundle in the repo to copy.** `examples/` holds fixtures and a
-findings log, not bundle source — the two bundles that used to live there moved
-to `tests/fixtures/bundles/` as checker inputs, and neither was ever safe to
-copy (no `version:`, and both drifted from what the platform ships). Do not go
-looking for `examples/<app>/manifest.yaml`; it does not exist.
-
-**The worked example is the checkout.** `popcorn app checkout` hands you the
-real, complete, currently-deployed bundle for the channel in front of you,
-comments and all. Read that. It is more current than any file in any repo, and
-you need it checked out anyway before you can edit it — so start there rather
-than hunting for a reference copy first.
-
-Worth reading once if you have the repo, because no command produces it:
-`examples/alerttracker/GOTCHAS.md`, a log of what actually broke when that
-bundle ran against live traffic.
-
-## Step 2: Scaffold, or check out what exists
-
-If the channel already runs the app, do **not** scaffold — check it out and
-edit the real thing, so your diff is against what is actually installed:
-
-```bash
-popcorn app fork --channel '#chan' && popcorn app checkout --channel '#chan'
-```
-
-A scaffold from scratch is for a bundle that will become a new app type. Either
-way the shape is the same:
-
-```
-mytemplate/
-├── manifest.yaml            tables, channel_parameters, scalars, schedules, webhooks
-├── AGENT.md                 notes injected into the channel agent's prompt
-├── README.md                human docs
-├── strings.yaml             locale-sectioned UI copy → `copy:<app>.*` scalars
-├── <flow>.yaml              one per flow; identity is the `name:` inside, not the filename
-├── prompts/<name>.md.j2     seeded into config, read as `$channel.prompts.<name>`
-├── templates/<name>.md.j2   same, read as `$channel.templates.<name>`
-└── code/<block>/            custom code, run by `foundation.code.execute`
-```
-
-**A path outside that tree does not reach the channel, and mostly nothing
-stops you.** Only one shape of misplacement is refused; the rest publish green
-and arrive incomplete:
-
-| Misplaced path | What you are told | What `app publish` does |
-|---|---|---|
-| `fixtures/`, `notes.txt`, `flows/claim_tick.yaml`, `prompts/nested/` | `template check` warns `path-not-published`; `app status` and `app publish` print `Not installable, so not published: …` | **Succeeds**, without that path |
-| `code/loose.py`, `code/Calc/main.py` | `app status` warns in the same words | **Refused**: `Not readable as block source` |
-| anything dot-prefixed — `code/calc/.env`, a stray `code/calc/.git/` | nothing at all | **Succeeds**, path skipped |
-
-The first row is the one that bites. `flows/claim_tick.yaml` is a plausible
-wrong guess at the layout, and it publishes green while the flow never reaches
-the channel — a refusal would have been kinder. So **read the warnings, not
-the exit status**: `path-not-published` is a warning, so a tree carrying
-nothing worse still exits 0. `--strict` (Step 4) is what turns it into a
-failure.
-
-The third row is intentional, not a gap — a `.env` beside your block source is
-skipped precisely so it cannot ship. Just do not expect a dotfile to publish.
-
-The layout rules behind that table:
-
-- **Flows live at the root.** `flows/claim_tick.yaml` is not a flow, it is an
-  unrecognized path.
-- **`prompts/` and `templates/` are exactly one level deep**, and no entry may
-  be dot-prefixed. `prompts/nested/brief.md.j2` publishes nothing, and the
-  warning names the directory — `prompts/nested/` — not the file you wrote.
-- **There is no `fixtures/` directory.** Keep sample payloads outside the
-  bundle — inside it they never reach the channel. (A bundle checked out from
-  a live channel has none; that is not an omission.)
-- **`code/<block>/` nests freely**, but the block name must be a slug
-  (`^[a-z0-9][a-z0-9_-]{0,62}$`), and the block needs the runner's entrypoint
-  — `main.py` or `index.js`. A file directly under `code/`, or a block name
-  that is not a slug, is the one misplacement that refuses the publish
-  outright rather than shipping short.
-
-Two things about the subdirectories that are easy to get backwards:
-
-- **`prompts/` and `templates/` are seeded into channel config at install**,
-  and a flow reads the text from there, not from the file. The filename's
-  suffix is stripped to form the key — `briefing_recap.md.j2` →
-  `$channel.prompts.briefing_recap` — and `.md.j2`, `.md.jinja`, `.j2`,
-  `.jinja`, `.md` and `.txt` all strip. Pair the reference with
-  `prompt_format: jinja` when the file is a Jinja template.
-- **`code/` is not seeded.** The bytes stay in the bundle and
-  `foundation.code.execute` reads them by block name at run time, from the
-  version the run pinned.
-
-`strings.yaml` is client-facing UI copy, sectioned by locale (`en:` is the
-base). Its keys expand to `copy:<app_type>.<dotted.path>` scalars on install,
-and the `copy:` prefix is also a projection filter — only those scalars are
-exposed to the client, so agent prompts and other manifest scalars cannot leak
-through it. Slots you omit fall back to the client's generic defaults, so a
-partial file is normal.
-
-Non-obvious things to get right the first time:
-
-- **A manifest with no `app_type:` CLEARS the channel's app_type.** Only
-  install an untyped bundle into a dedicated channel. Warn the user explicitly
-  before the first install.
-- **Never put flow-written runtime state under `scalars:`** — it UPSERTs on
-  every install and would reset the live channel.
-- **`schedules:` replaces wholesale**; `webhooks:` is create-if-missing.
-- Use `<channel-conversation-id>` in schedule inputs so the bundle stays
-  portable.
-
-## Step 3: Write flows against the real constraints
-
-These are the limits authors trip over. They are not style advice — each one
-is a hard failure.
-
-| Constraint | What to do instead |
-|---|---|
-| `when:` is exactly one `==`/`!=`. No `<`, `>`, `&&`, `||` | Put real predicates in `list_rows`' `filter`, which supports `$lt $gte $in $exists $contains` |
-| No arithmetic anywhere, including dates | Never design a counter — use a `merge: concat` string column. For time windows, have the caller pass a timestamp, or spend one `agent.transform` and use its output only as a filter operand |
-| A reference path cannot contain a space | A column read as `$row.X` must be named space-free. Columns only written or filtered may keep spaces |
-| `$inputs.<object>.field` is statically unreachable | Get a typed shape first via `agent.transform` + `output_schema` |
-| Arrays index with dots | `$steps.x.output.ids.0`, never `ids[0]` |
-| No `on_error` means up to 4 attempts | Non-idempotent steps need `retry: 0` |
-| A missing key is a hard `ReferenceError`, and `on_error` **cannot** rescue it — resolution precedes invocation | Guarantee presence upstream: `required` in an `output_schema`, or `$exists: true` in the query that produced the rows |
-
-### When you use `agent.transform`
-
-It will **invent data rather than fail**. A required `output_schema` is a
-formatting contract, not a validation gate. Always:
-
-1. Add a `recognized: {type: boolean}` field and a `workflow.fail` guard on it.
-2. Put **every property you dereference** in `required:` — an optional one may
-   simply be absent, and a missing key is a hard `ReferenceError`.
-3. Keep the prompt consistent with the schema. Telling the model to blank a
-   field whose `enum` excludes `""` makes it reason aloud and break JSON.
-
-## Step 4: Validate offline
-
-Two checks, neither subsuming the other:
-
-```bash
-popcorn flow validate . --channel <id>   # every flow — are the references real?
-popcorn template check ./<app>           # does the bundle hold together?
-```
-
-`flow validate` is the authority on any single reference. `template check` is
-offline and answers a different question — cross-file agreement, writes to
-undeclared columns, a schedule naming a flow that is not there. Run both, and get them clean before
-publishing: everything `template check` reports passes `flow validate` cleanly.
-
-```bash
-popcorn template check ./<app> --strict  # warnings fail too — the CI form
-```
-
-## Step 5: Publish, then actually run it
-
-```bash
-popcorn app publish ./<app> --changelog "what changed"
-popcorn app status ./<app>
-```
-
-Publish rather than ask, unless a person is reading your output mid-task — see
-"Whether to ask, when nobody is there to answer" above.
-
-Publishing starts the install that moves this channel onto the new version;
-`app status` is how you tell whether it has landed. If `status` says the
-channel is still on the old version, wait — do not re-publish.
-
-Then check the channel is actually wired up, which is a different question from
-whether the bundle is valid:
+A valid bundle and a wired-up channel are different questions:
 
 ```bash
 popcorn channel-config show --channel <id> --strict
 ```
 
 That diffs every `$channel.*` reference the flows make against what the channel
-has. `--strict` exits non-zero on the three findings that break a run — a
-referenced parameter that is not set, a declared integration that is not
-connected, and a connected account whose provider contradicts a declaration.
-The two `unused_*` findings are informational. Fix with:
+has, and `--strict` exits non-zero on the findings that break a run. Fix with:
 
 ```bash
 popcorn channel-config params set --channel <id> tone=crisp
@@ -351,73 +216,69 @@ popcorn channel-config integrations set --channel <id> --name mail \
   --integration-id <id>
 ```
 
-**Validation will not catch your real bugs.** Every defect found while
-building the reference bundle passed `flow validate` cleanly, because they
-were runtime semantics: a merge policy overwriting a timestamp, an LLM
-inventing a row, an optional field going missing, a write to an undeclared
-column. Always exercise the flow and read a row back.
+**Validation will not catch the real bugs.** The defects that matter are
+runtime semantics — a merge policy overwriting a timestamp, an LLM inventing a
+row, an optional field going missing — and they pass every check. Always
+exercise the flow and read a row back:
 
 ```bash
-popcorn flow run <flow-name-or-uuid> --channel <id> --wait
+popcorn flow run <flow-name> --channel <id> --wait
 popcorn flow runs list --channel <id>
 popcorn flow runs get <workflow-id> --channel <id> --include-errors
 popcorn table rows <table> --channel <id>
-popcorn table schema <table> --channel <id>
 ```
 
-Note: `flow run` accepts a name or a UUID and defaults `conversation_id` from
-`--channel`. Pass `--inputs` only for the flow's own arguments; an explicit
-`conversation_id` there still wins. (Step 0 already gated the CLI version, so
-per-command version notes are not repeated here.)
+`flow run` takes the flow's **name** — the `name:` inside its YAML, as
+`flow list` shows it — not an id. It defaults `conversation_id` from
+`--channel`; pass `--inputs` only for the flow's own arguments.
 
 For webhook-fed bundles:
 
 ```bash
-popcorn webhook list <id>                          # copyable URL
-curl -X POST <url> -H 'Content-Type: application/json' -d @../payloads/sample.json
+popcorn webhook list <id>
+popcorn webhook send <webhook-name> @../payloads/sample.json --channel <id>
 ```
 
-Keep those payloads outside the bundle directory — a `fixtures/` inside it is
-an unrecognized path, so publish leaves it behind and the channel never sees
-it.
+To create a webhook that starts a flow, name the flow:
+`webhook create --action-mode trigger_workflow --trigger-flow-name <flow-name>`.
 
-Posting the **same body twice does not test merge logic** — the webhook layer
-dedupes identical deliveries and no flow runs at all. Vary the body while
-keeping the identity fields.
+Keep sample payloads outside the bundle directory — inside it they are either
+installed as a flow or left behind. **Sending the same body twice does not test
+merge logic**: identical deliveries are dropped before any flow runs. Vary the
+body while keeping the identity fields.
 
-## Step 6: Debug
+A freshly created channel is **not resolvable by `#name` for a few minutes**.
+Use the conversation UUID right after `channel create`.
+
+## Step 5: Debug
 
 Work from evidence, in this order:
 
 1. `flow runs list --channel <id> --status failed` — find the failed run.
-2. `flow runs get <wid> --include-errors` — shows the terminal failure with
-   its cause chain and each activity failure. It names the **activity**, not
-   the DSL step id; the step id is not exposed by the API.
+2. `flow runs get <wid> --include-errors` — the terminal failure with its cause
+   chain. It names the **activity**, not the DSL step id.
 3. `table rows` / `table schema` — did the write land where you think? A
    column written under an undeclared name succeeds silently.
 4. If a run *Completed* but the data is wrong, suspect merge policy or an LLM
    step, not references.
 
-`start_flow` is asynchronous: a parent that launches a child reports Completed
-immediately. Always check the **child's** run.
+A flow that starts another with `start_flow` reports Completed immediately.
+Always check the **child's** run.
 
-## Gotchas worth stating out loud to the user
+## Say these out loud to the user
 
-- A freshly created channel is **not resolvable by `#name` for ~5 minutes**.
-  Use the conversation UUID right after `channel create`.
-- Installing an untyped bundle clears `app_type`.
-- Re-publishing the identical tree is a no-op that still re-runs the install,
-  but `schedules:` replaces wholesale on every install.
-- Table changes are additive — a "rename" adds a column and orphans the old
-  one, and every write site must be renamed too.
-- Forking is visible to the user's whole workspace: their channel leaves the
-  product line for a fork line only they own, and it will not pick up upstream
-  product updates the way it did before.
+- Forking moves the channel onto a line only this workspace owns, visibly to
+  the whole workspace, and a fork line cannot be deleted.
+- A publish reaches every channel on the line — give the
+  `other_channels_converging` count.
+- Table changes are additive: a "rename" adds a column and orphans the old one,
+  and every write site must be renamed too.
+- A manifest with no `app_type:` clears the channel's app type on install.
 
 ## Scope
 
 **This skill edits apps that exist.** It forks, checks out, publishes and
-debugs — the loop under "How a bundle actually gets installed".
+debugs.
 
 Do not offer to register a new app type yourself. That is a server-side
 change with its own review, and improvising it from here produces a bundle
