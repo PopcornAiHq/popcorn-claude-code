@@ -160,9 +160,26 @@ popcorn app status ./<app>               # has the install landed?
   reaches. Quote the number rather than describing the risk in the abstract;
   `0` means nobody else is affected, and saying so is more useful than a
   warning.
-- **If `app status` says the channel is still behind, wait — do not
-  re-publish.** The install converges on its own. `app apply` is the retry for
-  an install that did not land, not a step in the loop.
+- **Branch on `.data.install.state` from `app status` — never re-publish to
+  unstick an install.** The install converges on its own; `app apply` is the
+  retry for one that did not land, not a step in the loop. The `install` block
+  needs popcorn-cli 0.57.3 or later.
+
+  | `install.state` | What it means | Do |
+  |---|---|---|
+  | `current` | the channel runs its line's head | done |
+  | `installing` | an install is running, first attempt | wait, then re-check |
+  | `retrying` | the running install has failed at least once (`error`) | wait, then re-check |
+  | `failed` | the last install failed (`error`, `attempt` of `max_attempts`) | follow `retry_hint`: `app apply`; if it fails the same way, fix the head and publish forward |
+  | `skipped` | the last install was skipped (`reason`) | follow `retry_hint`: `app apply` |
+  | `behind` | nothing is moving it — no install started, or it is gone from history | follow `retry_hint`: `app apply` |
+  | `locked` | app updates are locked on this channel, so nothing will move it | a channel or workspace admin unlocks them, then `app apply` |
+
+  The `app apply` hints are for a fork-line channel; on a product channel
+  `retry_hint` names the daily auto-update instead, and apply does nothing.
+  `live: false` means the install workflow could not be read, so a running
+  install would not show — re-check before acting on `failed` or `behind`. A
+  condensed copy of this rule lives in `skills/popcorn/SKILL.md`; change both.
 
 ### Whether to ask, when nobody is there to answer
 

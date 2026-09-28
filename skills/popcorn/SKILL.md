@@ -96,6 +96,15 @@ and this shell cannot answer, so the question comes back as a refusal. On a
 CLI that does not ask, the flag does nothing. The rule above decides whether
 to publish; the flag only stops the CLI asking a question nobody can answer.
 
+**Then branch on `.data.install.state` from `popcorn app status` — never
+re-publish to unstick an install.** `installing` / `retrying`: wait, then
+re-check. `failed` / `skipped` / `behind`: follow `.data.install.retry_hint`,
+which on a fork-line channel is `popcorn app apply`. `locked`: app updates must
+be unlocked by a channel or workspace admin before `app apply` can move it.
+`current`: done. `live: false` means a running install would not show, so
+re-check before acting on `failed` or `behind`. `skills/bundle/SKILL.md` has the
+full table.
+
 Genuine blockers still stop you: `template check` failing, a fork you cannot
 create, a request needing an app type that does not exist. "This has
 consequences someone might want to weigh" is not a blocker — it is a line in
@@ -134,6 +143,26 @@ The CLI auto-updates. To upgrade manually: `popcorn upgrade`.
    POPCORN_AGENT=1 popcorn message list '#my-channel' --limit 25
    ```
 5. **JSON envelope** — all CLI JSON output uses an envelope: `{"ok": true, "data": ...}` on success, `{"ok": false, "error": ...}` on stderr for errors. Parse `.data` from success responses.
+
+### Commands with side effects worth knowing
+
+Arguments for every command are in `https://docs.popcorn.ai/reference/cli.md`
+and `popcorn <command> --help`; these are the ones whose behaviour matters
+before you run them.
+
+| Command | What it does |
+|---|---|
+| `app status --channel '#my-app'` | Read-only. Whether the last publish landed: branch on `.data.install.state`, as above |
+| `app apply --channel '#my-app'` | Moves a fork-line channel to its line's head. The retry, not a loop step |
+| `schedule list` / `schedule get <ref> --channel '#my-app'` | Read-only. A channel's live schedules and their run counters |
+| `schedule trigger <slug\|flow-id\|schedule-id> --channel '#my-app' [--overlap-policy P]` | **A write that starts a real run** of a declared schedule now, with its stored inputs — it posts, sends and writes whatever that flow does. Needs popcorn-cli 0.58.0 or later |
+
+`schedule trigger` does not change the schedule: a cadence change is a manifest
+edit and a publish. Say what the run will do before triggering it in an
+interactive session. `.data.skipped_overlap: true` means it did **not** run,
+because one was already in flight (`--overlap-policy allow_all` overrides); a
+null `workflow_id` means the run was not seen starting yet, not that it failed.
+Follow a started run with `popcorn flow runs get <workflow_id> --channel '#my-app'`.
 
 ### Message Structure
 
