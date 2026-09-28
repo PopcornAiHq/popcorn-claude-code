@@ -136,7 +136,7 @@ The CLI auto-updates. To upgrade manually: `popcorn upgrade`.
 
 1. **Always quote `'#channel-name'`** in bash — unquoted `#` triggers shell glob expansion. To find channels by name, use `channel list`.
 2. **Use `message list` to read channel messages**, not `workspace inbox`. Use `workspace inbox --unread` only for triaging unread notifications across all channels.
-3. **Confirm before sending.** Always show the user exactly what will be sent and get confirmation before calling `message send` or `post_message`.
+3. **Confirm before sending in an interactive session.** Show the user exactly what will be sent and get confirmation before calling `message send` or `post_message`. When no one is there to answer (the non-interactive case under "Finish the loop" above), send it and report what you sent. Prefixing your own commands with `POPCORN_AGENT=1` (rule 4) does not make a session non-interactive; whether a person is reading mid-task does.
 4. **Agent mode:** Prefix all CLI commands with `POPCORN_AGENT=1`. This auto-injects `--json`, `--quiet`, and `--no-color`, and suppresses upgrade prompts. You never need to pass `--json` manually.
    ```bash
    POPCORN_AGENT=1 popcorn channel info '#my-channel'

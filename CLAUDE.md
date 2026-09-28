@@ -78,9 +78,16 @@ was wrong in several places, so don't add one back.
 ## Versioning
 
 Bump `"version"` in both `.claude-plugin/plugin.json` and
-`.claude-plugin/marketplace.json` with every set of changes, and keep them in
-sync — drift between the two is the failure that actually bites. Patch by
-default, minor for notable features, major only when asked.
+`.claude-plugin/marketplace.json` with every set of changes that ships to users,
+and keep them in sync — drift between the two is the failure that actually
+bites. Patch by default, minor for notable features, major only when asked.
+
+What ships is everything the marketplace serves: `skills/` (including
+`setup.sh`), the manifests, `README.md`, and any new directory the runtime
+loads. A change touching only files read by people working on this repo —
+`CLAUDE.md`, `dev/`, `.github/`, `.pre-commit-config.yaml`, `Makefile`,
+`.gitignore` — needs no bump, because a bump pushes an update to every
+installed copy and that update would be empty.
 
 How to bump depends on how the change reaches `main`:
 
@@ -92,8 +99,9 @@ How to bump depends on how the change reaches `main`:
   which rewrites both files, commits `chore: bump version to X.Y.Z` and tags
   `vX.Y.Z`. Then `git push && git push --tags`.
 
-`dev/check-version-bump.sh` (pre-commit) warns, never blocks, when `skills/`,
-`README.md` or `CLAUDE.md` is staged without the version files.
+`dev/check-version-bump.sh` (pre-commit) warns, never blocks, when anything
+outside that list is staged without the version files. Keep its exclude list
+and the list above in step.
 
 ## Releasing
 
