@@ -163,20 +163,24 @@ popcorn app status ./<app>               # has the install landed?
 - **Branch on `.data.install.state` from `app status` — never re-publish to
   unstick an install.** The install converges on its own; `app apply` is the
   retry for one that did not land, not a step in the loop. The `install` block
-  needs popcorn-cli 0.57.3 or later.
+  needs popcorn-cli 0.57.3 or later, and its `Code:` line in text output 0.58.1
+  or later (`--json` carries `error_code` from 0.57.3).
 
   | `install.state` | What it means | Do |
   |---|---|---|
   | `current` | the channel runs its line's head | done |
   | `installing` | an install is running, first attempt | wait, then re-check |
   | `retrying` | the running install has failed at least once (`error`) | wait, then re-check |
-  | `failed` | the last install failed (`error`, `attempt` of `max_attempts`) | follow `retry_hint`: `app apply`; if it fails the same way, fix the head and publish forward |
+  | `failed` | the last install failed (`error`, `error_code`, `attempt` of `max_attempts`) | follow `retry_hint`, which depends on `error_code`: for `invalid_manifest`, `invalid_schedule` or `bundle_rejected` (or no code), `app apply`, and if it fails the same way fix the head and publish forward; for `internal`, `app apply` once, and if it keeps failing report it with `workflow_id` — never edit or publish over it; for `app_mismatch`, `fork_line_conflict` or `bundle_unavailable`, `app apply` moves the channel to its own line's head, so leave the head alone |
   | `skipped` | the last install was skipped (`reason`) | follow `retry_hint`: `app apply` |
   | `behind` | nothing is moving it — no install started, or it is gone from history | follow `retry_hint`: `app apply` |
   | `locked` | app updates are locked on this channel, so nothing will move it | a channel or workspace admin unlocks them, then `app apply` |
 
   The `app apply` hints are for a fork-line channel; on a product channel
   `retry_hint` names the daily auto-update instead, and apply does nothing.
+  On either kind, an `error_code` of `internal` is a platform failure: no edit
+  or publish fixes it, so report it with `workflow_id` instead of publishing
+  forward.
   `live: false` means the install workflow could not be read, so a running
   install would not show — re-check before acting on `failed` or `behind`. A
   condensed copy of this rule lives in `skills/popcorn/SKILL.md`; change both.
