@@ -99,7 +99,11 @@ to publish; the flag only stops the CLI asking a question nobody can answer.
 **Then branch on `.data.install.state` from `popcorn app status` — never
 re-publish to unstick an install.** `installing` / `retrying`: wait, then
 re-check. `failed` / `skipped` / `behind`: follow `.data.install.retry_hint`,
-which on a fork-line channel is `popcorn app apply`. `locked`: app updates must
+which on a fork-line channel is `popcorn app apply`. For `failed`, also read
+`.data.install.error_code`: only `invalid_manifest`, `invalid_schedule` and
+`bundle_rejected` (or no code) are fixed by editing the head and publishing;
+`internal` is a platform failure to report with `workflow_id`, never to publish
+over. `locked`: app updates must
 be unlocked by a channel or workspace admin before `app apply` can move it.
 `current`: done. `live: false` means a running install would not show, so
 re-check before acting on `failed` or `behind`. `skills/bundle/SKILL.md` has the
