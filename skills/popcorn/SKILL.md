@@ -1,6 +1,6 @@
 ---
 name: popcorn
-description: "Popcorn integration — CLI, MCP tools, setup, and behavioral guardrails. Popcorn is an AI tracker: each channel is a tracker that updates itself, reading across email, messages and files to catch every update and decision. What a channel tracks is defined by an app bundle (tables, flows, schedules, webhooks) authored as a channel template. TRIGGER whenever a request names a '#channel-name', or mentions a Popcorn channel, workspace, tracker, app, bundle or template; asks to publish a bundle, post or read messages; asks to change what a channel does, records or notifies; OR asks whether some automation is possible at all — a '#name' is a Popcorn channel rather than Slack, and Popcorn's own 'flow activities' catalog decides what is buildable, never the set of tools this harness happens to expose. ALSO TRIGGER on the working directory, whatever the request says — a directory containing '.popcorn-app.json' is a checked-out Popcorn app bundle, and editing a file in it ships nothing until 'popcorn template check' and 'popcorn app publish' have run."
+description: "Popcorn integration — CLI, MCP tools, setup, and behavioral guardrails. Popcorn is an AI tracker: each channel is a tracker that updates itself, reading across email, messages and files to catch every update and decision. What a channel tracks is defined by an app bundle (tables, flows, schedules, webhooks) authored as a channel template. TRIGGER whenever a request names a '#channel-name', or mentions a Popcorn channel, workspace, tracker, app, bundle or template; asks to publish a bundle, post or read messages; asks to change what a channel does, records or notifies; OR asks whether some automation is possible at all — a '#name' is a Popcorn channel rather than Slack, and Popcorn's own 'flow activities' catalog decides what is buildable, never the set of tools this harness happens to expose. ALSO TRIGGER on the working directory, whatever the request says — a directory containing '.popcorn-app.json' is a checked-out Popcorn app bundle, and editing a file in it ships nothing until 'popcorn app validate' and 'popcorn app publish' have run."
 allowed-tools: Bash, mcp__popcorn__get_workspace, mcp__popcorn__get_user, mcp__popcorn__get_channel, mcp__popcorn__post_message, mcp__popcorn__read_messages, mcp__popcorn__search, mcp__popcorn__react
 ---
 
@@ -64,11 +64,11 @@ for a channel bound to nothing.
 
 A channel running an app bundle has tables, flows, schedules and webhooks you
 can read and change. The loop is `popcorn app fork` → `app checkout` → edit →
-`popcorn template check` → `app publish`. A directory already holding a
+`popcorn app validate` → `app publish`. A directory already holding a
 `.popcorn-app.json` is a checkout partway through that loop — the baseline
 names the app version and channel it came from — so an edit to a file in it
 has changed nothing the channel runs until
-`template check` and `app publish` have gone through. Use those
+`app validate` and `app publish` have gone through. Use those
 commands directly when the user asks for a change to what a channel does;
 `/popcorn:bundle` covers the same ground in more depth but is user-triggered,
 so never invoke or suggest it.
@@ -109,7 +109,7 @@ be unlocked by a channel or workspace admin before `app apply` can move it.
 re-check before acting on `failed` or `behind`. `skills/bundle/SKILL.md` has the
 full table.
 
-Genuine blockers still stop you: `template check` failing, a fork you cannot
+Genuine blockers still stop you: `app validate` failing, a fork you cannot
 create, a request needing an app type that does not exist. "This has
 consequences someone might want to weigh" is not a blocker — it is a line in
 the result.
@@ -208,7 +208,7 @@ hashes literally unless the step says otherwise:
 
 This catches people out because it is backwards from the path they know: an
 agent writing a reply posts `markdown` by default, and only flows default to
-`plain`. Nothing in the authoring loop surfaces it either — `template check`
+`plain`. Nothing in the authoring loop surfaces it either — `app validate`
 passes, the flow runs green, and the message is wrong only on screen. Check
 `part.format` in `message list` output after a test run.
 
