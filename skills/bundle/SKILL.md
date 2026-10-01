@@ -40,7 +40,7 @@ commands below leave the prefix off for readability; add it anyway.
 POPCORN_AGENT=1 popcorn --version
 ```
 
-This skill is written against popcorn-cli **0.52.0 or later**. On anything
+This skill is written against popcorn-cli **0.60.0 or later**. On anything
 older, tell the user to run `popcorn upgrade` and stop.
 
 ## Where the authoring rules live
@@ -122,22 +122,25 @@ Before the first install of a bundle with no `app_type:` in its manifest, warn
 the user explicitly: an untyped manifest clears the channel's app type. Only
 install one into a dedicated channel.
 
-## Step 2: Edit, then validate offline
+## Step 2: Edit, then validate
 
 Two checks, neither subsuming the other. Run both and get them clean before
 publishing:
 
 ```bash
 popcorn flow validate .                  # every flow — are the references real?
-popcorn template check ./<app> --strict  # does the bundle hold together?
+popcorn app validate ./<app> --strict  # does the bundle hold together?
 ```
 
 Inside a checkout both take the channel from the baseline; elsewhere pass
-`--channel <id>` to `flow validate`.
+`--channel <id>` to `flow validate`. Logged in, `app validate` also runs the
+table checks publish runs — a column type, format or merge setting the store
+would refuse. Offline it skips them and says so, and publish still refuses
+such a table.
 
 **Read the warnings, not the exit status.** A path the format does not
 recognise — a `fixtures/` directory, a flow under `flows/`, a nested prompt —
-is a `path-not-published` *warning*, so a plain `template check` exits 0 and
+is a `path-not-published` *warning*, so a plain `app validate` exits 0 and
 `app publish` then succeeds without that path. `--strict` is what turns it
 into a failure, which is why it is the form above.
 
@@ -214,7 +217,7 @@ data you created, are both decisions you are equipped to make — quote the
 yourself for the second. **Finish on the summary of what changed, never on a
 question.** State judgement calls as decisions taken.
 
-Genuine blockers still stop you: `template check` failing, a fork you cannot
+Genuine blockers still stop you: `app validate` failing, a fork you cannot
 create, a request that needs an app type that does not exist. But "this has
 consequences someone might want to weigh" is not a blocker — it is a line in
 the result.
