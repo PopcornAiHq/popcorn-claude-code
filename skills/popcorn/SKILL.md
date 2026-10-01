@@ -224,9 +224,9 @@ The MCP surface covers people, channels, messages and a channel's app bundle. It
 
 Each MCP connection is bound to one workspace, chosen when the user connected Popcorn, and every tool response starts with a `Workspace: <name> (<id>)` line. No tool takes or switches a workspace: to use a different one, the user reconnects Popcorn. An ID or `#name` from another workspace comes back as not found.
 
-Read tools take `channel` as an ID or `#name`; a name that matches more than one channel is refused with the candidates' IDs. Write tools take `channel_id`, an ID only. Listings return a page with a total and a `cursor` for the next page; pass it back unchanged with the same arguments.
+Read tools take `channel` as an ID or `#name`; a name that matches more than one channel is refused with the candidates' IDs. Tools that write into a channel take `channel_id`, an ID only. Listings return a page and a `cursor` for the next page (most also give a total; message search doesn't); pass the cursor back unchanged with the same arguments.
 
-Writes that are one-way or reach beyond one message (`fork_app_bundle`, `install_app_bundle`) are a dry run by default: the first call changes nothing and shows what would happen. Show that to the user, and call again with `confirm=true` only once they agree.
+A fork, and an install that moves a channel onto another line, are a dry run by default: the first call changes nothing and shows what would happen. Show that to the user, and call again with `confirm=true` only once they agree. An install that brings a channel to its own fork line's head starts at once, so ask before calling it.
 
 | Tool | Purpose |
 |------|---------|
@@ -244,4 +244,4 @@ Writes that are one-way or reach beyond one message (`fork_app_bundle`, `install
 | `list_app_bundle_files` | The files in a channel's app bundle |
 | `read_app_bundle_file` | One file from a channel's app bundle |
 | `fork_app_bundle` | Give the channel its own copy of its app, permanently (dry run first) |
-| `install_app_bundle` | Bring the channel to its app's newest version, or move it to another line (dry run first) |
+| `install_app_bundle` | Bring a channel on a fork line to its line's head (starts at once), or move it onto another line (dry run first) |
