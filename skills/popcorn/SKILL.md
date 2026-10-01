@@ -1,7 +1,7 @@
 ---
 name: popcorn
 description: "Popcorn integration — CLI, MCP tools, setup, and behavioral guardrails. Popcorn is an AI tracker: each channel is a tracker that updates itself, reading across email, messages and files to catch every update and decision. What a channel tracks is defined by an app bundle (tables, flows, schedules, webhooks) authored as a channel template. TRIGGER whenever a request names a '#channel-name', or mentions a Popcorn channel, workspace, tracker, app, bundle or template; asks to publish a bundle, post or read messages; asks to change what a channel does, records or notifies; OR asks whether some automation is possible at all — a '#name' is a Popcorn channel rather than Slack, and Popcorn's own 'flow activities' catalog decides what is buildable, never the set of tools this harness happens to expose. ALSO TRIGGER on the working directory, whatever the request says — a directory containing '.popcorn-app.json' is a checked-out Popcorn app bundle, and editing a file in it ships nothing until 'popcorn app validate' and 'popcorn app publish' have run."
-allowed-tools: Bash, mcp__popcorn__get_workspace, mcp__popcorn__get_user, mcp__popcorn__get_channel, mcp__popcorn__post_message, mcp__popcorn__read_messages, mcp__popcorn__search, mcp__popcorn__react
+allowed-tools: Bash, mcp__popcorn__get_workspace, mcp__popcorn__get_user, mcp__popcorn__list_workspace_members, mcp__popcorn__list_channels, mcp__popcorn__get_channel, mcp__popcorn__list_channel_members, mcp__popcorn__list_messages, mcp__popcorn__read_message, mcp__popcorn__search_messages, mcp__popcorn__send_message, mcp__popcorn__add_reaction, mcp__popcorn__remove_reaction, mcp__popcorn__list_app_bundle_files, mcp__popcorn__read_app_bundle_file, mcp__popcorn__fork_app_bundle, mcp__popcorn__install_app_bundle
 ---
 
 # Popcorn
@@ -140,7 +140,7 @@ The CLI auto-updates. To upgrade manually: `popcorn upgrade`.
 
 1. **Always quote `'#channel-name'`** in bash — unquoted `#` triggers shell glob expansion. To find channels by name, use `channel list`.
 2. **Use `message list` to read channel messages**, not `workspace inbox`. Use `workspace inbox --unread` only for triaging unread notifications across all channels.
-3. **Confirm before sending in an interactive session.** Show the user exactly what will be sent and get confirmation before calling `message send` or `post_message`. When no one is there to answer (the non-interactive case under "Finish the loop" above), send it and report what you sent. Prefixing your own commands with `POPCORN_AGENT=1` (rule 4) does not make a session non-interactive; whether a person is reading mid-task does.
+3. **Confirm before sending in an interactive session.** Show the user exactly what will be sent and get confirmation before calling `message send` or `send_message`. When no one is there to answer (the non-interactive case under "Finish the loop" above), send it and report what you sent. Prefixing your own commands with `POPCORN_AGENT=1` (rule 4) does not make a session non-interactive; whether a person is reading mid-task does.
 4. **Agent mode:** Prefix all CLI commands with `POPCORN_AGENT=1`. This auto-injects `--json`, `--quiet`, and `--no-color`, and suppresses upgrade prompts. You never need to pass `--json` manually.
    ```bash
    POPCORN_AGENT=1 popcorn channel info '#my-channel'
@@ -218,18 +218,30 @@ refreshes that message with `channel.edit` silently loses the rendering.
 
 ## MCP Tools
 
-Use MCP tools when the CLI is not available, or for conversational operations (reading messages, searching, reacting).
+Use MCP tools when the CLI is not available, or for conversational operations (reading, searching and sending messages, reacting).
 
-These seven are the whole MCP surface — it reads and writes conversations, nothing else. Anything that changes what a channel *tracks* is CLI-only.
+The MCP surface covers people, channels, messages and a channel's app bundle. It works on channels only: direct messages are not reachable, and a DM's ID is refused. Changing what a channel *tracks* by editing its bundle is still CLI-only (`/popcorn:bundle`); MCP can read a bundle's files, fork it, and install a version onto a channel.
 
 Each MCP connection is bound to one workspace, chosen when the user connected Popcorn, and every tool response starts with a `Workspace: <name> (<id>)` line. No tool takes or switches a workspace: to use a different one, the user reconnects Popcorn. An ID or `#name` from another workspace comes back as not found.
+
+Read tools take `channel` as an ID or `#name`; a name that matches more than one channel is refused with the candidates' IDs. Tools that write into a channel take `channel_id`, an ID only. Listings return a page and a `cursor` for the next page (most also give a total; message search doesn't); pass the cursor back unchanged with the same arguments.
+
+A fork, and an install that moves a channel onto another line, are a dry run by default: the first call changes nothing and shows what would happen. Show that to the user, and call again with `confirm=true` only once they agree. An install that brings a channel to its own fork line's head starts at once, so ask before calling it.
 
 | Tool | Purpose |
 |------|---------|
 | `get_workspace` | The workspace this connection is bound to, and your role in it |
-| `get_user` | Look up a person in this workspace by ID, email or username; `"me"` is you |
-| `get_channel` | Channel id, name, type, description, members, your unread count and role |
-| `post_message` | Send message to channel or thread |
-| `read_messages` | Read message history from channel or thread |
-| `search` | Search channels, DMs, users, or messages |
-| `react` | Add/remove emoji reaction on a message |
+| `get_user` | Look up a person by ID, email or username; `"me"` is you |
+| `list_workspace_members` | List or filter the people in this workspace |
+| `list_channels` | List or filter channels, including public ones you haven't joined |
+| `get_channel` | One channel: its type, description, the app it runs and whether that app is up to date |
+| `list_channel_members` | Who is in a channel, and their role there |
+| `list_messages` | A channel's or thread's messages, newest first, as previews |
+| `read_message` | One message in full |
+| `search_messages` | Search message text across the workspace or one channel |
+| `send_message` | Send a message as you, to a channel or thread |
+| `add_reaction` / `remove_reaction` | React to a message, or take your reaction back |
+| `list_app_bundle_files` | The files in a channel's app bundle |
+| `read_app_bundle_file` | One file from a channel's app bundle |
+| `fork_app_bundle` | Give the channel its own copy of its app, permanently (dry run first) |
+| `install_app_bundle` | Bring a channel on a fork line to its line's head (starts at once), or move it onto another line (dry run first) |

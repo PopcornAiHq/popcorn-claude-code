@@ -6,7 +6,7 @@
   },
   "metadata": {
     "description": "Work on your Popcorn trackers from Claude Code",
-    "version": "0.19.9"
+    "version": "0.20.0"
   },
   "plugins": [
     {
