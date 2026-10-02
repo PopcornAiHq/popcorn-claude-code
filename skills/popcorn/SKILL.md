@@ -1,7 +1,7 @@
 ---
 name: popcorn
-description: "Popcorn integration — CLI, MCP tools, setup, and behavioral guardrails. Popcorn is an AI tracker: each channel is a tracker that updates itself, reading across email, messages and files to catch every update and decision. What a channel tracks is defined by an app bundle (tables, flows, schedules, webhooks) authored as a channel template. TRIGGER whenever a request names a '#channel-name', or mentions a Popcorn channel, workspace, tracker, app, bundle or template; asks to publish a bundle, post or read messages; asks to change what a channel does, records or notifies; OR asks whether some automation is possible at all — a '#name' is a Popcorn channel rather than Slack, and Popcorn's own 'flow activities' catalog decides what is buildable, never the set of tools this harness happens to expose. ALSO TRIGGER on the working directory, whatever the request says — a directory containing '.popcorn-app.json' is a checked-out Popcorn app bundle, and editing a file in it ships nothing until 'popcorn app validate' and 'popcorn app publish' have run."
-allowed-tools: Bash, mcp__popcorn__get_workspace, mcp__popcorn__get_user, mcp__popcorn__list_workspace_members, mcp__popcorn__list_channels, mcp__popcorn__get_channel, mcp__popcorn__list_channel_members, mcp__popcorn__list_messages, mcp__popcorn__read_message, mcp__popcorn__search_messages, mcp__popcorn__send_message, mcp__popcorn__add_reaction, mcp__popcorn__remove_reaction, mcp__popcorn__list_app_bundle_files, mcp__popcorn__read_app_bundle_file, mcp__popcorn__fork_app_bundle, mcp__popcorn__install_app_bundle
+description: "Popcorn integration — CLI, MCP tools, setup, and behavioral guardrails. Popcorn is an AI tracker: each channel is a tracker that updates itself, reading across email, messages and files to catch every update and decision. What a channel tracks is defined by an app bundle (tables, flows, schedules, webhooks) authored as a channel template. TRIGGER whenever a request names a '#channel-name', or mentions a Popcorn channel or project, workspace, tracker, app, bundle or template; asks to publish a bundle, post or read messages; asks to change what a channel does, records or notifies; OR asks whether some automation is possible at all — a '#name' is a Popcorn channel rather than Slack, and Popcorn's own 'flow activities' catalog decides what is buildable, never the set of tools this harness happens to expose. ALSO TRIGGER on the working directory, whatever the request says — a directory containing '.popcorn-app.json' is a checked-out Popcorn app bundle, and editing a file in it ships nothing until 'popcorn app validate' and 'popcorn app publish' have run."
+allowed-tools: Bash, mcp__popcorn__get_workspace, mcp__popcorn__get_user, mcp__popcorn__list_workspace_members, mcp__popcorn__list_projects, mcp__popcorn__get_project, mcp__popcorn__list_project_members, mcp__popcorn__list_apps, mcp__popcorn__create_project, mcp__popcorn__list_messages, mcp__popcorn__read_message, mcp__popcorn__search_messages, mcp__popcorn__send_message, mcp__popcorn__add_reaction, mcp__popcorn__remove_reaction, mcp__popcorn__list_app_bundle_files, mcp__popcorn__read_app_bundle_file, mcp__popcorn__fork_app_bundle, mcp__popcorn__install_app_bundle
 ---
 
 # Popcorn
@@ -220,28 +220,32 @@ refreshes that message with `channel.edit` silently loses the rendering.
 
 Use MCP tools when the CLI is not available, or for conversational operations (reading, searching and sending messages, reacting).
 
-The MCP surface covers people, channels, messages and a channel's app bundle. It works on channels only: direct messages are not reachable, and a DM's ID is refused. Changing what a channel *tracks* by editing its bundle is still CLI-only (`/popcorn:bundle`); MCP can read a bundle's files, fork it, and install a version onto a channel.
+The MCP tools call a channel a **project**: a project is what the CLI and the API call a channel, and its `#name` is the same. The CLI commands above keep saying channel.
+
+The MCP surface covers people, projects, messages and a project's app bundle. It works on projects only: direct messages are not reachable, and a DM's ID is refused. Changing what a project *tracks* by editing its bundle is still CLI-only (`/popcorn:bundle`); MCP can list the apps a new project can run, create a project (optionally running one), read a bundle's files, fork it, and install a version onto a project.
 
 Each MCP connection is bound to one workspace, chosen when the user connected Popcorn, and every tool response starts with a `Workspace: <name> (<id>)` line. No tool takes or switches a workspace: to use a different one, the user reconnects Popcorn. An ID or `#name` from another workspace comes back as not found.
 
-Read tools take `channel` as an ID or `#name`; a name that matches more than one channel is refused with the candidates' IDs. Tools that write into a channel take `channel_id`, an ID only. Listings return a page and a `cursor` for the next page (most also give a total; message search doesn't); pass the cursor back unchanged with the same arguments.
+Read tools take `project` as an ID or `#name`; a name that matches more than one project is refused with the candidates' IDs. Tools that write into a project take `project_id`, an ID only. Listings return a page and a `cursor` for the next page (most also give a total; message search doesn't); pass the cursor back unchanged with the same arguments.
 
-A fork, and an install that moves a channel onto another line, are a dry run by default: the first call changes nothing and shows what would happen. Show that to the user, and call again with `confirm=true` only once they agree. An install that brings a channel to its own fork line's head starts at once, so ask before calling it.
+A fork, an install that moves a project onto another line, and creating a project that runs an app are a dry run by default: the first call changes nothing and shows what would happen. Show that to the user, and call again with `confirm=true` only once they agree. An install that brings a project to its own fork line's head starts at once, and so does creating a project with no app, so ask before calling either.
 
 | Tool | Purpose |
 |------|---------|
 | `get_workspace` | The workspace this connection is bound to, and your role in it |
 | `get_user` | Look up a person by ID, email or username; `"me"` is you |
 | `list_workspace_members` | List or filter the people in this workspace |
-| `list_channels` | List or filter channels, including public ones you haven't joined |
-| `get_channel` | One channel: its type, description, the app it runs and whether that app is up to date |
-| `list_channel_members` | Who is in a channel, and their role there |
-| `list_messages` | A channel's or thread's messages, newest first, as previews |
+| `list_projects` | List or filter projects, including public ones you haven't joined |
+| `get_project` | One project: its kind, description, the app it runs and whether that app is up to date |
+| `list_project_members` | Who is in a project, and their role there |
+| `list_apps` | The apps a new project in this workspace can run, with the connections each needs |
+| `create_project` | Create a project, optionally running an app (with an app, dry run first); a taken name is refused with the existing project's ID |
+| `list_messages` | A project's or thread's messages, newest first, as previews |
 | `read_message` | One message in full |
-| `search_messages` | Search message text across the workspace or one channel |
-| `send_message` | Send a message as you, to a channel or thread |
+| `search_messages` | Search message text across the workspace or one project |
+| `send_message` | Send a message as you, to a project or thread |
 | `add_reaction` / `remove_reaction` | React to a message, or take your reaction back |
-| `list_app_bundle_files` | The files in a channel's app bundle |
-| `read_app_bundle_file` | One file from a channel's app bundle |
-| `fork_app_bundle` | Give the channel its own copy of its app, permanently (dry run first) |
-| `install_app_bundle` | Bring a channel on a fork line to its line's head (starts at once), or move it onto another line (dry run first) |
+| `list_app_bundle_files` | The files in a project's app bundle |
+| `read_app_bundle_file` | One file from a project's app bundle |
+| `fork_app_bundle` | Give the project its own copy of its app, permanently (dry run first) |
+| `install_app_bundle` | Bring a project on a fork line to its line's head (starts at once), or move it onto another line (dry run first) |
