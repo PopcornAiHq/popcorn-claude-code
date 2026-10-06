@@ -1,7 +1,7 @@
 ---
 name: popcorn
 description: "Popcorn integration — CLI, MCP tools, setup, and behavioral guardrails. Popcorn is an AI tracker: each channel is a tracker that updates itself, reading across email, messages and files to catch every update and decision. What a channel tracks is defined by an app bundle (tables, flows, schedules, webhooks) authored as a channel template. TRIGGER whenever a request names a '#channel-name', or mentions a Popcorn channel or project, workspace, tracker, app, bundle or template; asks to publish a bundle, post or read messages; asks to change what a channel does, records or notifies; OR asks whether some automation is possible at all — a '#name' is a Popcorn channel rather than Slack, and Popcorn's own 'flow activities' catalog decides what is buildable, never the set of tools this harness happens to expose. ALSO TRIGGER on the working directory, whatever the request says — a directory containing '.popcorn-app.json' is a checked-out Popcorn app bundle, and editing a file in it ships nothing until 'popcorn app validate' and 'popcorn app publish' have run."
-allowed-tools: Bash, mcp__popcorn__get_workspace, mcp__popcorn__get_user, mcp__popcorn__list_workspace_members, mcp__popcorn__list_projects, mcp__popcorn__get_project, mcp__popcorn__list_project_members, mcp__popcorn__list_apps, mcp__popcorn__create_project, mcp__popcorn__list_messages, mcp__popcorn__read_message, mcp__popcorn__search_messages, mcp__popcorn__send_message, mcp__popcorn__add_reaction, mcp__popcorn__remove_reaction, mcp__popcorn__list_app_bundle_files, mcp__popcorn__read_app_bundle_file, mcp__popcorn__fork_app_bundle, mcp__popcorn__publish_app_bundle, mcp__popcorn__install_app_bundle
+allowed-tools: Bash, mcp__popcorn__get_workspace, mcp__popcorn__get_user, mcp__popcorn__list_workspace_members, mcp__popcorn__list_projects, mcp__popcorn__get_project, mcp__popcorn__list_project_members, mcp__popcorn__list_apps, mcp__popcorn__create_project, mcp__popcorn__list_messages, mcp__popcorn__read_message, mcp__popcorn__search_messages, mcp__popcorn__send_message, mcp__popcorn__add_reaction, mcp__popcorn__remove_reaction, mcp__popcorn__list_app_files, mcp__popcorn__read_app_file, mcp__popcorn__fork_app, mcp__popcorn__publish_app, mcp__popcorn__install_app
 ---
 
 # Popcorn
@@ -222,7 +222,7 @@ Use MCP tools when the CLI is not available, or for conversational operations (r
 
 The MCP tools call a channel a **project**: a project is what the CLI and the API call a channel, and its `#name` is the same. The CLI commands above keep saying channel.
 
-The MCP surface covers people, projects, messages and a project's app bundle. It works on projects only: direct messages are not reachable, and a DM's ID is refused. MCP can list the apps a new project can run, create a project (optionally running one), read a bundle's files, fork it, publish changes to it, and install a version onto a project. Where the CLI is available, change what a project *tracks* with it (`/popcorn:bundle`): a checkout gets the whole bundle on disk and `app validate` before publishing. Without it, `publish_app_bundle` takes changes rather than whole files; its description says how to write them.
+The MCP surface covers people, projects, messages and a project's app (what the CLI calls its app bundle). It works on projects only: direct messages are not reachable, and a DM's ID is refused. MCP can list the apps a new project can run, create a project (optionally running one), read an app's files, fork it, publish changes to it, and install a version onto a project. Where the CLI is available, change what a project *tracks* with it (`/popcorn:bundle`): a checkout gets the whole bundle on disk and `app validate` before publishing. Without it, `publish_app` takes changes rather than whole files; its description says how to write them.
 
 Each MCP connection is bound to one workspace, chosen when the user connected Popcorn, and every tool response starts with a `Workspace: <name> (<id>)` line. No tool takes or switches a workspace: to use a different one, the user reconnects Popcorn. An ID or `#name` from another workspace comes back as not found.
 
@@ -245,8 +245,8 @@ A fork, a publish, an install that moves a project onto another line, and creati
 | `search_messages` | Search message text across the workspace or one project |
 | `send_message` | Send a message as you, to a project or thread |
 | `add_reaction` / `remove_reaction` | React to a message, or take your reaction back |
-| `list_app_bundle_files` | The files in a project's app bundle |
-| `read_app_bundle_file` | One file from a project's app bundle |
-| `fork_app_bundle` | Give the project its own copy of its app, permanently (dry run first) |
-| `publish_app_bundle` | Publish changes to a project's fork line, which reaches every project on that line; workspace admins only (dry run first) |
-| `install_app_bundle` | Bring a project on a fork line to its line's head (starts at once), or move it onto another line (dry run first) |
+| `list_app_files` | The files of a project's app |
+| `read_app_file` | One file from a project's app |
+| `fork_app` | Give the project its own copy of its app, permanently (dry run first) |
+| `publish_app` | Publish changes to a project's fork line, which reaches every project on that line; workspace admins only (dry run first) |
+| `install_app` | Bring a project on a fork line to its line's head (starts at once), or move it onto another line (dry run first) |
