@@ -1,7 +1,7 @@
 ---
 name: popcorn
 description: "Popcorn integration — CLI, MCP tools, setup, and behavioral guardrails. Popcorn is an AI tracker: each channel is a tracker that updates itself, reading across email, messages and files to catch every update and decision. What a channel tracks is defined by an app bundle (tables, flows, schedules, webhooks) authored as a channel template. TRIGGER whenever a request names a '#channel-name', or mentions a Popcorn channel or project, workspace, tracker, app, bundle or template; asks to publish a bundle, post or read messages; asks to change what a channel does, records or notifies; OR asks whether some automation is possible at all — a '#name' is a Popcorn channel rather than Slack, and Popcorn's own 'flow activities' catalog decides what is buildable, never the set of tools this harness happens to expose. ALSO TRIGGER on the working directory, whatever the request says — a directory containing '.popcorn-app.json' is a checked-out Popcorn app bundle, and editing a file in it ships nothing until 'popcorn app validate' and 'popcorn app publish' have run."
-allowed-tools: Bash, mcp__popcorn__get_workspace, mcp__popcorn__get_user, mcp__popcorn__list_workspace_members, mcp__popcorn__list_projects, mcp__popcorn__get_project, mcp__popcorn__list_project_members, mcp__popcorn__list_apps, mcp__popcorn__create_project, mcp__popcorn__list_messages, mcp__popcorn__read_message, mcp__popcorn__search_messages, mcp__popcorn__send_message, mcp__popcorn__add_reaction, mcp__popcorn__remove_reaction, mcp__popcorn__list_app_files, mcp__popcorn__read_app_file, mcp__popcorn__fork_app, mcp__popcorn__publish_app, mcp__popcorn__install_app, mcp__popcorn__list_flows, mcp__popcorn__get_flow, mcp__popcorn__run_flow, mcp__popcorn__list_flow_runs, mcp__popcorn__get_flow_run, mcp__popcorn__cancel_flow_run
+allowed-tools: Bash, mcp__popcorn__get_workspace, mcp__popcorn__get_user, mcp__popcorn__list_workspace_members, mcp__popcorn__list_projects, mcp__popcorn__get_project, mcp__popcorn__list_project_members, mcp__popcorn__list_apps, mcp__popcorn__create_project, mcp__popcorn__list_messages, mcp__popcorn__read_message, mcp__popcorn__search_messages, mcp__popcorn__send_message, mcp__popcorn__add_reaction, mcp__popcorn__remove_reaction, mcp__popcorn__list_app_files, mcp__popcorn__read_app_file, mcp__popcorn__fork_app, mcp__popcorn__publish_app, mcp__popcorn__install_app, mcp__popcorn__list_flows, mcp__popcorn__get_flow, mcp__popcorn__run_flow, mcp__popcorn__list_flow_runs, mcp__popcorn__get_flow_run, mcp__popcorn__cancel_flow_run, mcp__popcorn__list_project_settings, mcp__popcorn__get_project_setting, mcp__popcorn__update_project_setting, mcp__popcorn__list_tables, mcp__popcorn__get_table, mcp__popcorn__list_rows, mcp__popcorn__get_row, mcp__popcorn__list_scalars, mcp__popcorn__get_scalar, mcp__popcorn__create_rows, mcp__popcorn__update_row, mcp__popcorn__delete_rows
 ---
 
 # Popcorn
@@ -222,13 +222,13 @@ Use MCP tools when the CLI is not available, or for conversational operations (r
 
 The MCP tools call a channel a **project**: a project is what the CLI and the API call a channel, and its `#name` is the same. The CLI commands above keep saying channel.
 
-The MCP surface covers people, projects, messages and a project's app (what the CLI calls its app bundle). It works on projects only: direct messages are not reachable, and a DM's ID is refused. MCP can list the apps a new project can run, create a project (optionally running one), read an app's files, fork it, publish changes to it, and install a version onto a project, and list a project's flows, run one, and follow or stop its runs. Where the CLI is available, change what a project *tracks* with it (`/popcorn:bundle`): a checkout gets the whole bundle on disk and `app validate` before publishing. Without it, `publish_app` takes changes rather than whole files; its description says how to write them.
+The MCP surface covers people, projects, messages and a project's app (what the CLI calls its app bundle). It works on projects only: direct messages are not reachable, and a DM's ID is refused. MCP can list the apps a new project can run, create a project (optionally running one), read an app's files, fork it, publish changes to it, and install a version onto a project; list a project's flows, run one, and follow or stop its runs; read and change a project's settings; and read a project's agent store (its tables, rows and stored values) and add, change or delete its rows. To change how a project behaves, check `list_project_settings` before forking: a setting reaches one project and can be set back, while a fork is one-way. Where the CLI is available, change what a project *tracks* with it (`/popcorn:bundle`): a checkout gets the whole bundle on disk and `app validate` before publishing. Without it, `publish_app` takes changes rather than whole files; its description says how to write them.
 
 Each MCP connection is bound to one workspace, chosen when the user connected Popcorn, and every tool response starts with a `Workspace: <name> (<id>)` line. No tool takes or switches a workspace: to use a different one, the user reconnects Popcorn. An ID or `#name` from another workspace comes back as not found.
 
 Read tools take `project` as an ID or `#name`; a name that matches more than one project is refused with the candidates' IDs. Tools that write into a project take `project_id`, an ID only. Listings return a page and a `cursor` for the next page (most also give a total; message search doesn't); pass the cursor back unchanged with the same arguments.
 
-A fork, a publish, an install that moves a project onto another line, creating a project that runs an app, and running a flow are a dry run by default: the first call changes nothing and shows what would happen. Show that to the user, and call again with `confirm=true` only once they agree. An install that brings a project to its own fork line's head starts at once, and so does creating a project with no app, so ask before calling either.
+A fork, a publish, an install that moves a project onto another line, creating a project that runs an app, running a flow, changing a setting and deleting rows are a dry run by default: the first call changes nothing and shows what would happen. Show that to the user, and call again with `confirm=true` only once they agree. An install that brings a project to its own fork line's head starts at once, and so does creating a project with no app, so ask before calling either.
 
 | Tool | Purpose |
 |------|---------|
@@ -256,3 +256,15 @@ A fork, a publish, an install that moves a project onto another line, creating a
 | `list_flow_runs` | A project's flow runs, newest first, and how each ended |
 | `get_flow_run` | One run: its inputs, outputs, failure and newest steps |
 | `cancel_flow_run` | Stop one run at its next step |
+| `list_project_settings` | Every setting the project's app offers, set or not, marked where the project changed it |
+| `get_project_setting` | One setting in full: its whole text, options, app default and description |
+| `update_project_setting` | Change one setting on this project, or set it back to the app default (dry run first) |
+| `list_tables` | A project's agent-store tables, with row counts |
+| `get_table` | One table's columns, merge key and state machine |
+| `list_rows` | Rows in a table, newest first; search with `query` or `filter` |
+| `get_row` | One row in full, with its `rev` |
+| `list_scalars` | A project's stored values (settings read better through `list_project_settings`) |
+| `get_scalar` | One stored value in full |
+| `create_rows` | Add rows to a table, or merge them on a key |
+| `update_row` | Change one row's data columns (needs its `rev`; status columns change through the app) |
+| `delete_rows` | Delete rows by ID (dry run first) |
