@@ -52,15 +52,21 @@ a fetch tool that summarises pages drops exactly the details that matter:
 | Need | Read |
 |---|---|
 | Index of every page, one paragraph each | `https://docs.popcorn.ai/llms.txt` |
-| The whole authoring loop: bundle layout, manifest keys, flow grammar, tables, traps | `https://docs.popcorn.ai/guides/template-authoring.md` |
-| A bundle's `states:` section | `https://docs.popcorn.ai/guides/states-authoring.md` |
+| The authoring loop, start to finish, and a checklist before you publish | `https://docs.popcorn.ai/guides/template-authoring.md` |
+| What a bundle directory may hold, and what publish leaves behind | `https://docs.popcorn.ai/concepts/app-bundle.md` |
+| A flow's file: its keys, the five kinds of step, blocks, `call_flow`, `foreach` | `https://docs.popcorn.ai/concepts/flow-grammar.md` |
+| `$` references, `when:` conditions, `on_error` and retries | `https://docs.popcorn.ai/concepts/references.md`, `…/conditions.md`, `…/on-error.md` |
+| Reading fields off a webhook payload: `fields.extract` or `agent.transform` | `https://docs.popcorn.ai/concepts/extract-or-derive.md` |
 | What install does to each manifest key | `https://docs.popcorn.ai/concepts/manifest-keys.md` |
+| Table columns, and what a repeat write does to them | `https://docs.popcorn.ai/concepts/table-columns.md`, `…/merge-policy.md` |
+| Schedules: cadence, class, and how install reconciles them | `https://docs.popcorn.ai/concepts/schedules.md` |
 | Where a value belongs: `scalars:`, `default_scalars:`, or neither | `https://docs.popcorn.ai/concepts/scalar-tiers.md` |
+| A bundle's `states:` section | `https://docs.popcorn.ai/guides/states-authoring.md` |
 | Fork lines, publish and apply, versions | `https://docs.popcorn.ai/concepts/fork-line.md`, `…/publish-and-apply.md`, `…/bundle-version.md` |
 | An activity's arguments and results | `https://docs.popcorn.ai/reference/activities.md` — and the CLI, below |
 
-`llms.txt` lists the rest of the concept pages. The guide says where it and the
-tools disagree, the tool is right — so treat a clash as a docs bug, not a reason
+`llms.txt` lists the rest of the concept pages. The guide says that where it
+and the tools disagree, the tool is right — so treat a clash as a docs bug, not a reason
 to route around the check.
 
 **The server is the authority on activities, not your memory.** Never write an
