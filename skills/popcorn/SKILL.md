@@ -1,7 +1,7 @@
 ---
 name: popcorn
 description: "Popcorn integration — CLI, MCP tools, setup, and behavioral guardrails. Popcorn is an AI tracker: each channel is a tracker that updates itself, reading across email, messages and files to catch every update and decision. What a channel tracks is defined by an app bundle (tables, flows, schedules, webhooks) authored as a channel template. TRIGGER whenever a request names a '#channel-name', or mentions a Popcorn channel or project, workspace, tracker, app, bundle or template; asks to publish a bundle, post or read messages; asks to change what a channel does, records or notifies; OR asks whether some automation is possible at all — a '#name' is a Popcorn channel rather than Slack, and Popcorn's own 'flow activities' catalog decides what is buildable, never the set of tools this harness happens to expose. ALSO TRIGGER on the working directory, whatever the request says — a directory containing '.popcorn-app.json' is a checked-out Popcorn app bundle, and editing a file in it ships nothing until 'popcorn app validate' and 'popcorn app publish' have run."
-allowed-tools: Bash, mcp__popcorn__get_workspace, mcp__popcorn__get_user, mcp__popcorn__list_workspace_members, mcp__popcorn__list_routines, mcp__popcorn__get_routine, mcp__popcorn__list_routine_templates, mcp__popcorn__create_routine, mcp__popcorn__list_messages, mcp__popcorn__read_message, mcp__popcorn__search_messages, mcp__popcorn__send_message, mcp__popcorn__add_reaction, mcp__popcorn__remove_reaction, mcp__popcorn__list_app_files, mcp__popcorn__read_app_file, mcp__popcorn__fork_app, mcp__popcorn__publish_app, mcp__popcorn__install_app, mcp__popcorn__list_flows, mcp__popcorn__get_flow, mcp__popcorn__run_flow, mcp__popcorn__list_flow_runs, mcp__popcorn__get_flow_run, mcp__popcorn__cancel_flow_run, mcp__popcorn__list_routine_settings, mcp__popcorn__get_routine_setting, mcp__popcorn__update_routine_setting, mcp__popcorn__list_tables, mcp__popcorn__get_table, mcp__popcorn__list_rows, mcp__popcorn__get_row, mcp__popcorn__list_scalars, mcp__popcorn__get_scalar, mcp__popcorn__create_rows, mcp__popcorn__update_row, mcp__popcorn__delete_rows, mcp__popcorn__list_triggers, mcp__popcorn__run_trigger, mcp__popcorn__list_actions, mcp__popcorn__take_action
+allowed-tools: Bash, mcp__popcorn__get_workspace, mcp__popcorn__get_user, mcp__popcorn__list_workspace_members, mcp__popcorn__list_routines, mcp__popcorn__get_routine, mcp__popcorn__list_routine_templates, mcp__popcorn__create_routine, mcp__popcorn__list_app_files, mcp__popcorn__read_app_file, mcp__popcorn__fork_app, mcp__popcorn__publish_app, mcp__popcorn__install_app, mcp__popcorn__list_routine_settings, mcp__popcorn__get_routine_setting, mcp__popcorn__update_routine_setting, mcp__popcorn__list_tables, mcp__popcorn__get_table, mcp__popcorn__list_rows, mcp__popcorn__get_row, mcp__popcorn__create_rows, mcp__popcorn__update_row, mcp__popcorn__delete_rows, mcp__popcorn__list_triggers, mcp__popcorn__run_trigger, mcp__popcorn__list_actions, mcp__popcorn__take_action
 ---
 
 # Popcorn
@@ -140,7 +140,7 @@ The CLI auto-updates. To upgrade manually: `popcorn upgrade`.
 
 1. **Always quote `'#channel-name'`** in bash — unquoted `#` triggers shell glob expansion. To find channels by name, use `channel list`.
 2. **Use `message list` to read channel messages**, not `workspace inbox`. Use `workspace inbox --unread` only for triaging unread notifications across all channels.
-3. **Confirm before sending in an interactive session.** Show the user exactly what will be sent and get confirmation before calling `message send` or `send_message`. When no one is there to answer (the non-interactive case under "Finish the loop" above), send it and report what you sent. Prefixing your own commands with `POPCORN_AGENT=1` (rule 4) does not make a session non-interactive; whether a person is reading mid-task does.
+3. **Confirm before sending in an interactive session.** Show the user exactly what will be sent and get confirmation before calling `message send`. When no one is there to answer (the non-interactive case under "Finish the loop" above), send it and report what you sent. Prefixing your own commands with `POPCORN_AGENT=1` (rule 4) does not make a session non-interactive; whether a person is reading mid-task does.
 4. **Agent mode:** Prefix all CLI commands with `POPCORN_AGENT=1`. This auto-injects `--json`, `--quiet`, and `--no-color`, and suppresses upgrade prompts. You never need to pass `--json` manually.
    ```bash
    POPCORN_AGENT=1 popcorn channel info '#my-channel'
@@ -218,11 +218,11 @@ refreshes that message with `channel.edit` silently loses the rendering.
 
 ## MCP Tools
 
-Use MCP tools when the CLI is not available, or for conversational operations (reading, searching and sending messages, reacting).
+Use MCP tools when the CLI is not available. Messages are not on the MCP surface: read, search and send them with the CLI's `message` commands, or in Popcorn.
 
 The MCP tools use the product's names: what the CLI and the API call a channel is a **Routine**, made from a **Routine Template** (an app), and its `#name` is the same. The CLI commands above keep saying channel.
 
-The MCP surface covers people, Routines, messages and a Routine's app (what the CLI calls its app bundle). It works on Routines only: direct messages are not reachable, and a DM's ID is refused. MCP can list the Routine Templates a new Routine can start from, create a Routine (optionally from one), read an app's files, fork it, publish changes to it, and install a version onto a Routine; list a Routine's flows, run one, and follow or stop its runs; read and change a Routine's settings; and read a Routine's agent store (its tables, rows and stored values) and add, change or delete its rows. To change how a Routine behaves, check `list_routine_settings` before forking: a setting reaches one Routine and can be set back, while a fork is one-way. Where the CLI is available, change what a Routine *tracks* with it (`/popcorn:bundle`): a checkout gets the whole bundle on disk and `app validate` before publishing. Without it, `publish_app` takes changes rather than whole files; its description says how to write them.
+The MCP surface covers people, Routines and a Routine's app (what the CLI calls its app bundle). MCP can list the Routine Templates a new Routine can start from, create a Routine (optionally from one) and see whether its Connections are made; read an app's files, fork it, publish changes to it, and install a version onto a Routine; see what starts a Routine's work and run a schedule now (`list_triggers`, `run_trigger`); list and take the Actions on its items (`list_actions`, `take_action`); read and change a Routine's settings; and read a Routine's tables and rows and add, change or delete rows. A Routine's runs are followed in Popcorn, or with the CLI. To change how a Routine behaves, check `list_routine_settings` before forking: a setting reaches one Routine and can be set back, while a fork is one-way. Where the CLI is available, change what a Routine *tracks* with it (`/popcorn:bundle`): a checkout gets the whole bundle on disk and `app validate` before publishing. Without it, `publish_app` takes changes rather than whole files; its description says how to write them.
 
 Each MCP connection is bound to one workspace, chosen when the user connected Popcorn, and every tool response starts with a `Workspace: <name> (<id>)` line. No tool takes or switches a workspace: to use a different one, the user reconnects Popcorn. An ID or `#name` from another workspace comes back as not found.
 
@@ -239,22 +239,11 @@ A fork, a publish, an install that moves a Routine onto another line, creating a
 | `get_routine` | One Routine: its kind, description, the app it runs and whether that app is up to date |
 | `list_routine_templates` | The Routine Templates a new Routine in this workspace can start from, with the connections each needs |
 | `create_routine` | Create a Routine, optionally from a Routine Template (with a template, dry run first); a taken name is refused with the existing Routine's ID |
-| `list_messages` | A Routine's or thread's messages, newest first, as previews |
-| `read_message` | One message in full |
-| `search_messages` | Search message text across the workspace or one Routine |
-| `send_message` | Send a message as you, to a Routine or thread |
-| `add_reaction` / `remove_reaction` | React to a message, or take your reaction back |
 | `list_app_files` | The files of a Routine's app |
 | `read_app_file` | One file from a Routine's app |
 | `fork_app` | Give the Routine its own copy of its app, permanently (dry run first) |
 | `publish_app` | Publish changes to a Routine's fork line, which reaches every Routine on that line; workspace admins only (dry run first) |
 | `install_app` | Bring a Routine on a fork line to its line's head (starts at once), or move it onto another line (dry run first) |
-| `list_flows` | The flows a Routine's app runs, with their inputs and schedules |
-| `get_flow` | One flow: its inputs, the integrations it needs, and everything that starts it |
-| `run_flow` | Run a flow now, for real (dry run first: it checks the inputs and integrations) |
-| `list_flow_runs` | A Routine's flow runs, newest first, and how each ended |
-| `get_flow_run` | One run: its inputs, outputs, failure and newest steps |
-| `cancel_flow_run` | Stop one run at its next step |
 | `list_routine_settings` | Every setting the Routine's app offers, set or not, marked where the Routine changed it |
 | `get_routine_setting` | One setting in full: its whole text, options, app default and description |
 | `update_routine_setting` | Change one setting on this Routine, or set it back to the app default (dry run first) |
@@ -262,8 +251,6 @@ A fork, a publish, an install that moves a Routine onto another line, creating a
 | `get_table` | One table's columns, merge key and state machine |
 | `list_rows` | Rows in a table, newest first; search with `query` or `filter` |
 | `get_row` | One row in full, with its `rev` |
-| `list_scalars` | A Routine's stored values (settings read better through `list_routine_settings`) |
-| `get_scalar` | One stored value in full |
 | `create_rows` | Add rows to a table, or merge them on a key |
 | `update_row` | Change one row's data columns (needs its `rev`; status columns change through the app) |
 | `delete_rows` | Delete rows by ID (dry run first) |
