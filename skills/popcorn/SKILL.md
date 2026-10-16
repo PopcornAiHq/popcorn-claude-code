@@ -150,7 +150,7 @@ The CLI auto-updates. To upgrade manually: `popcorn upgrade`.
 
 ### Commands with side effects worth knowing
 
-Arguments for every command are in `https://docs.popcorn.ai/reference/cli.md`
+Arguments for every command are in `https://docs.popcorn.ai/platform/reference/cli.md`
 and `popcorn <command> --help`; these are the ones whose behaviour matters
 before you run them.
 
