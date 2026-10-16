@@ -226,9 +226,9 @@ The MCP surface covers people, Routines and a Routine's app (what the CLI calls 
 
 Each MCP connection is bound to one workspace, chosen when the user connected Popcorn, and every tool response starts with a `Workspace: <name> (<id>)` line. No tool takes or switches a workspace: to use a different one, the user reconnects Popcorn. An ID or `#name` from another workspace comes back as not found.
 
-Read tools take `routine` as an ID or `#name`; a name that matches more than one Routine is refused with the candidates' IDs. Tools that write into a Routine take `routine_id`, an ID only. Listings return a page and a `cursor` for the next page (most also give a total; message search doesn't); pass the cursor back unchanged with the same arguments.
+Read tools take `routine` as an ID or `#name`; a name that matches more than one Routine is refused with the candidates' IDs. Tools that write into a Routine take `routine_id`, an ID only. Listings return a page and a `cursor` for the next page (most also give a total); pass the cursor back unchanged with the same arguments.
 
-A fork, a publish, an install that moves a Routine onto another line, creating a Routine from a template, running a flow, changing a setting and deleting rows are a dry run by default: the first call changes nothing and shows what would happen. Show that to the user, and call again with `confirm=true` only once they agree. An install that brings a Routine to its own fork line's head starts at once, and so does creating a Routine with no template, so ask before calling either.
+A fork, a publish, an install that moves a Routine onto another line, creating a Routine from a template, running a Trigger, taking an Action, changing a setting and deleting rows are a dry run by default: the first call changes nothing and shows what would happen. Show that to the user, and call again with `confirm=true` only once they agree. An install that brings a Routine to its own fork line's head starts at once, and so does creating a Routine with no template, so ask before calling either.
 
 | Tool | Purpose |
 |------|---------|
@@ -236,7 +236,7 @@ A fork, a publish, an install that moves a Routine onto another line, creating a
 | `get_user` | Look up a person by ID, email or username; `"me"` is you |
 | `list_workspace_members` | List or filter the people in this workspace |
 | `list_routines` | List or filter Routines, including public ones you haven't joined |
-| `get_routine` | One Routine: its kind, description, the app it runs and whether that app is up to date |
+| `get_routine` | One Routine: its kind, description, its Routine Template, where its updates come from (Popcorn or this workspace's own copy) and whether it's on the latest version |
 | `list_routine_templates` | The Routine Templates a new Routine in this workspace can start from, with the connections each needs |
 | `create_routine` | Create a Routine, optionally from a Routine Template (with a template, dry run first); a taken name is refused with the existing Routine's ID |
 | `list_app_files` | The files of a Routine's app |
@@ -244,15 +244,15 @@ A fork, a publish, an install that moves a Routine onto another line, creating a
 | `fork_app` | Give the Routine its own copy of its app, permanently (dry run first) |
 | `publish_app` | Publish changes to a Routine's fork line, which reaches every Routine on that line; workspace admins only (dry run first) |
 | `install_app` | Bring a Routine on a fork line to its line's head (starts at once), or move it onto another line (dry run first) |
-| `list_routine_settings` | Every setting the Routine's app offers, set or not, marked where the Routine changed it |
-| `get_routine_setting` | One setting in full: its whole text, options, app default and description |
-| `update_routine_setting` | Change one setting on this Routine, or set it back to the app default (dry run first) |
-| `list_tables` | A Routine's agent-store tables, with row counts |
+| `list_routine_settings` | Every setting the Routine's template offers, set or not, marked where the Routine changed it |
+| `get_routine_setting` | One setting in full: its whole text, options, template default and description |
+| `update_routine_setting` | Change one setting on this Routine, or set it back to the template default (dry run first) |
+| `list_tables` | A Routine's tables, with row counts |
 | `get_table` | One table's columns, merge key and state machine |
 | `list_rows` | Rows in a table, newest first; search with `query` or `filter` |
 | `get_row` | One row in full, with its `rev` |
 | `create_rows` | Add rows to a table, or merge them on a key |
-| `update_row` | Change one row's data columns (needs its `rev`; status columns change through the app) |
+| `update_row` | Change one row's data columns (needs its `rev`; status columns change only through the Routine's state machine) |
 | `delete_rows` | Delete rows by ID (dry run first) |
 | `list_triggers` | What starts work in a Routine: its schedules, webhooks (by name), message and document triggers |
 | `run_trigger` | Run one of a Routine's schedules now, with the inputs it runs with on schedule (dry run first) |
