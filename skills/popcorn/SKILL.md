@@ -228,7 +228,7 @@ Each MCP connection is bound to one workspace, chosen when the user connected Po
 
 Read tools take `routine` as an ID or `#name`; a name that matches more than one Routine is refused with the candidates' IDs. Tools that write into a Routine take `routine_id`, an ID only. Listings return a page and a `cursor` for the next page (most also give a total); pass the cursor back unchanged with the same arguments.
 
-A fork, a publish, an install that moves a Routine onto another line, creating a Routine from a template, running a Trigger, taking an Action, changing a setting and deleting rows are a dry run by default: the first call changes nothing and shows what would happen. Show that to the user, and call again with `confirm=true` only once they agree. An install that brings a Routine to its own fork line's head starts at once, and so does creating a Routine with no template, so ask before calling either.
+A fork, a publish, an install that moves a Routine onto another line, creating a Routine from a template, running a Trigger, taking an Action, changing a setting, and adding or deleting rows are a dry run by default: the first call changes nothing and shows what would happen. Show that to the user, and call again with `confirm=true` only once they agree. An install that brings a Routine to its own fork line's head starts at once, and so does creating a Routine with no template, so ask before calling either.
 
 | Tool | Purpose |
 |------|---------|
@@ -251,7 +251,7 @@ A fork, a publish, an install that moves a Routine onto another line, creating a
 | `get_table` | One table's columns, merge key and state machine |
 | `list_rows` | Rows in a table, newest first; search with `query` or `filter` |
 | `get_row` | One row in full, with its `rev` |
-| `create_rows` | Add rows to a table, or merge them on a key |
+| `create_rows` | Add rows to a table, or merge them on a key (dry run first: it says which rows would be added or merged, and what an added item starts, such as its first email) |
 | `update_row` | Change one row's data columns (needs its `rev`; status columns change only through the Routine's state machine) |
 | `delete_rows` | Delete rows by ID (dry run first) |
 | `list_triggers` | What starts work in a Routine: its schedules, webhooks (by name), message and document triggers |
